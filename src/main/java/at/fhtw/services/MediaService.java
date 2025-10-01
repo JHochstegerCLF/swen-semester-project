@@ -1,9 +1,9 @@
 package at.fhtw.services;
 
-import at.fhtw.models.Media;
+import at.fhtw.models.IMedia;
 
 public class MediaService {
-    public static Media[] getMedias(int[] ids) {
+    public static IMedia[] getMedias(int[] ids) {
         return null;
     }
 }
