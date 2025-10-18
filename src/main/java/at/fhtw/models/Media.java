@@ -1,7 +1,11 @@
 package at.fhtw.models;
 
 import at.fhtw.models.enums.MediaType;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class Media {
     private int id;
     private String title;
