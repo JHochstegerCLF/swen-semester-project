@@ -1,13 +1,17 @@
 package at.fhtw.presentation.handlers;
 
+import at.fhtw.presentation.http.ContentType;
+import at.fhtw.presentation.http.HttpStatus;
 import at.fhtw.presentation.models.Context;
-import at.fhtw.presentation.models.HttpMethod;
+import at.fhtw.presentation.http.HttpMethod;
 import at.fhtw.presentation.annotations.DELETE;
 import at.fhtw.presentation.annotations.GET;
 import at.fhtw.presentation.annotations.POST;
 import at.fhtw.presentation.annotations.PUT;
+import at.fhtw.presentation.models.Response;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import lombok.Getter;
 import org.javatuples.Pair;
 
 import java.io.IOException;
@@ -23,6 +27,7 @@ import java.util.function.Consumer;
 public class BaseHandler implements HttpHandler {
     private final String param = "\\{.*\\}";
     private final Map<Pair<HttpMethod, String>, Consumer<HttpExchange>> routes;
+    @Getter
     private final String initialPath;
 
     public BaseHandler(String initialPath) {
@@ -57,12 +62,12 @@ public class BaseHandler implements HttpHandler {
                 throw new RuntimeException(e);
             }
         } else {
-            try {
-                System.out.println(getMethod(httpExchange).name() + ": " + httpExchange.getRequestURI().getPath() + " -> Not found");
-                httpExchange.sendResponseHeaders(404, -1);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            System.out.println(getMethod(httpExchange).name() + ": " + httpExchange.getRequestURI().getPath() + " -> Not found");
+            new Response(
+                    HttpStatus.NOT_FOUND,
+                    ContentType.PLAIN_TEXT,
+                    "Endpoint not found"
+            ).send(httpExchange);
         }
     }
 
@@ -125,4 +130,5 @@ public class BaseHandler implements HttpHandler {
             default -> null;
         };
     }
+
 }

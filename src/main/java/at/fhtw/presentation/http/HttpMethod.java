@@ -1,4 +1,4 @@
-package at.fhtw.presentation.models;
+package at.fhtw.presentation.http;
 
 public enum HttpMethod {
     GET,

@@ -7,8 +7,10 @@ import at.fhtw.presentation.annotations.POST;
 import at.fhtw.presentation.annotations.PUT;
 
 public class MediaHandler extends BaseHandler {
-    public MediaHandler(String initialPath) {
-        super(initialPath);
+    public MediaHandler(
+
+    ) {
+        super("/api/media");
     }
 
     @GET(path = "/")

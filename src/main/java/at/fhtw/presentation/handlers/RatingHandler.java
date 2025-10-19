@@ -6,8 +6,10 @@ import at.fhtw.presentation.annotations.POST;
 import at.fhtw.presentation.annotations.PUT;
 
 public class RatingHandler extends BaseHandler {
-    public RatingHandler(String initialPath) {
-        super(initialPath);
+    public RatingHandler(
+
+    ) {
+        super("/api/ratings");
     }
 
     @POST(path = "/{ratingId}/like")
