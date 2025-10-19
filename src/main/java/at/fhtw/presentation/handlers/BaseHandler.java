@@ -1,20 +1,17 @@
 package at.fhtw.presentation.handlers;
 
+import at.fhtw.presentation.annotations.*;
 import at.fhtw.presentation.http.ContentType;
+import at.fhtw.presentation.http.HttpMethod;
 import at.fhtw.presentation.http.HttpStatus;
 import at.fhtw.presentation.models.Context;
-import at.fhtw.presentation.http.HttpMethod;
-import at.fhtw.presentation.annotations.DELETE;
-import at.fhtw.presentation.annotations.GET;
-import at.fhtw.presentation.annotations.POST;
-import at.fhtw.presentation.annotations.PUT;
 import at.fhtw.presentation.models.Response;
+import at.fhtw.services.AuthService;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import lombok.Getter;
 import org.javatuples.Pair;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,13 +22,18 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class BaseHandler implements HttpHandler {
+    private final AuthService authService;
     private final String param = "\\{.*\\}";
     private final Map<Pair<HttpMethod, String>, Consumer<HttpExchange>> routes;
     @Getter
     private final String initialPath;
 
-    public BaseHandler(String initialPath) {
-        this.initialPath = initialPath.toLowerCase();
+    public BaseHandler(
+            String initialPath,
+            AuthService authService
+    ) {
+        this.authService = authService;
+        this.initialPath = initialPath;
         routes = new HashMap<>();
     }
 
@@ -53,7 +55,30 @@ public class BaseHandler implements HttpHandler {
         //When found finish setting up context and invoke method
         if (possibleRoute.isPresent()) {
             Method method = possibleRoute.get();
-            context.setParams(getParams(path, getPathFromMethod(method, getMethod(httpExchange)))); //Not my best work, but it works since all the annotations have the same path value
+            if (method.isAnnotationPresent(Auth.class)) {
+                String authHeader = context.getHeaders().getFirst("Authorization");
+                if (authHeader == null) {
+                    System.out.println(getMethod(httpExchange).name() + ": " + httpExchange.getRequestURI().getPath() + " -> Unauthorized: No Token");
+                    new Response(
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.PLAIN_TEXT,
+                            "No token provided"
+                    ).send(httpExchange);
+                    return;
+                }
+                String token = authHeader.replace("Bearer ", "");
+                if (!authService.validateToken(token)) {
+                    System.out.println(getMethod(httpExchange).name() + ": " + httpExchange.getRequestURI().getPath() + " -> Unauthorized: Invalid Token");
+                    new Response(
+                            HttpStatus.UNAUTHORIZED,
+                            ContentType.PLAIN_TEXT,
+                            "Invalid token"
+                    ).send(httpExchange);
+                    return;
+                }
+            }
+            context.setPathParams(getPathParams(path, getPathFromMethod(method, getMethod(httpExchange))));
+            context.setQueryParams(getQueryParams(httpExchange.getRequestURI().getQuery()));
             System.out.println(getMethod(httpExchange).name() + ": " + httpExchange.getRequestURI().getPath() + " -> " + method.getName());
             try {
                 method.invoke(this, context);
@@ -66,7 +91,7 @@ public class BaseHandler implements HttpHandler {
             new Response(
                     HttpStatus.NOT_FOUND,
                     ContentType.PLAIN_TEXT,
-                    "Endpoint not found"
+                    "No context found for request"
             ).send(httpExchange);
         }
     }
@@ -78,8 +103,8 @@ public class BaseHandler implements HttpHandler {
             return false;
         }
         for (int i = 0; i < requestParts.length; i++) {
-            String requestPart = requestParts[i];
-            String routePart = routeParts[i];
+            String requestPart = requestParts[i].toLowerCase();
+            String routePart = routeParts[i].toLowerCase();
             if (routePart.matches(param)) {
                 continue;
             }
@@ -90,7 +115,7 @@ public class BaseHandler implements HttpHandler {
         return true;
     }
 
-    protected Map<String, String> getParams(String requestPath, String route) {
+    protected Map<String, String> getPathParams(String requestPath, String route) {
         String[] requestParts = splitPath(requestPath, initialPath);
         String[] routeParts = splitPath(route, "^/");
         Map<String, String> params = new HashMap<>();
@@ -103,12 +128,25 @@ public class BaseHandler implements HttpHandler {
         return params;
     }
 
+    protected Map<String, String> getQueryParams(String query) {
+        HashMap<String, String> params = new HashMap<>();
+        if (query == null) {
+            return params;
+        }
+        Arrays.stream(query.split("&"))
+                .forEach(s -> {
+                    String[] parts = s.split("=");
+                    params.put(parts[0], parts[1]);
+                });
+        return params;
+    }
+
     protected HttpMethod getMethod(HttpExchange httpExchange) {
         return HttpMethod.valueOf(httpExchange.getRequestMethod());
     }
 
     protected String[] splitPath(String path, String prefix) {
-        return Arrays.stream(path.toLowerCase().replaceFirst(prefix, "").split("/")).filter(s -> !s.isEmpty()).toArray(String[]::new);
+        return Arrays.stream(path.replaceFirst(prefix, "").split("/")).filter(s -> !s.isEmpty()).toArray(String[]::new);
     }
 
     protected String getPath(Annotation annotation, HttpMethod method) {
@@ -123,10 +161,10 @@ public class BaseHandler implements HttpHandler {
 
     protected String getPathFromMethod(Method method, HttpMethod httpMethod) {
         return switch (httpMethod) {
-            case GET -> ((GET) method.getAnnotation(GET.class)).path();
-            case POST -> ((POST) method.getAnnotation(POST.class)).path();
-            case PUT -> ((PUT) method.getAnnotation(PUT.class)).path();
-            case DELETE -> ((DELETE) method.getAnnotation(DELETE.class)).path();
+            case GET -> method.getAnnotation(GET.class).path();
+            case POST -> method.getAnnotation(POST.class).path();
+            case PUT -> method.getAnnotation(PUT.class).path();
+            case DELETE -> method.getAnnotation(DELETE.class).path();
             default -> null;
         };
     }

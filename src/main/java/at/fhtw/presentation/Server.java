@@ -29,14 +29,4 @@ public class Server {
         server.start();
         System.out.println("Server started on port " + port);
     }
-
-    private void bind(Class<? extends BaseHandler> handler) {
-        try {
-            BaseHandler handlerInstance = handler.getDeclaredConstructor().newInstance();
-            server.createContext(handlerInstance.getInitialPath(), handlerInstance);
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
-                 InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
 }

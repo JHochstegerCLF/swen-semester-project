@@ -1,13 +1,15 @@
 package at.fhtw.persistence;
 
 import at.fhtw.models.User;
+import com.google.inject.Singleton;
 
 import java.util.*;
 
+@Singleton
 public class UserRepository {
-    private Set<User> users = new HashSet<>();
+    private final List<User> users = new ArrayList<>();
 
-    public boolean createUser(User user) { //TODO Move logic to service
+    public boolean createUser(User user) {
         return users.add(user);
     }
 
@@ -21,5 +23,9 @@ public class UserRepository {
 
     public boolean updateUser(User user) {
         return true;
+    }
+
+    public List<User> getUsers() {
+        return users;
     }
 }

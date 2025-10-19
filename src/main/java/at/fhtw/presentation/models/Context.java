@@ -15,7 +15,9 @@ import java.util.Map;
 public class Context implements AutoCloseable {
     @NonNull
     private HttpExchange httpExchange;
-    private Map<String, String> params;
+    private Map<String, String> pathParams;
+    private Map<String, String> queryParams;
+    private String token;
     private Headers headers;
     private String body;
     private HttpMethod method;
@@ -32,6 +34,10 @@ public class Context implements AutoCloseable {
         } catch (IOException e) {
             this.body = "";
             throw new RuntimeException(e);
+        }
+        token = headers.getFirst("Authorization");
+        if (token != null) {
+            token = token.replace("Bearer ", "");
         }
     }
 

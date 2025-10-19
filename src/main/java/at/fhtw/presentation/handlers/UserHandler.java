@@ -2,9 +2,12 @@ package at.fhtw.presentation.handlers;
 
 import at.fhtw.converter.JsonConverter;
 import at.fhtw.models.dtos.UserCredentials;
+import at.fhtw.presentation.annotations.Auth;
 import at.fhtw.presentation.annotations.GET;
 import at.fhtw.presentation.annotations.POST;
 import at.fhtw.presentation.annotations.PUT;
+import at.fhtw.presentation.http.ContentType;
+import at.fhtw.presentation.http.HttpStatus;
 import at.fhtw.presentation.models.Context;
 import at.fhtw.presentation.models.Response;
 import at.fhtw.services.AuthService;
@@ -20,34 +23,64 @@ public class UserHandler extends BaseHandler {
             UserService userService,
             AuthService authService
     ) {
-        super("/api/users");
+        super("/api/users", authService);
         this.userService = userService;
         this.authService = authService;
     }
 
+    @Auth
     @GET(path = "/{userId}/favorites")
     protected void favorites(Context context) {
         System.out.println("Favorites: ");
+        new Response(
+                HttpStatus.NOT_IMPLEMENTED,
+                ContentType.PLAIN_TEXT,
+                "Not implemented"
+        ).send(context.getHttpExchange());
     }
 
+    @Auth
     @GET(path = "/{userId}/ratings")
     protected void ratings(Context context) {
         System.out.println("Ratings");
+        new Response(
+                HttpStatus.NOT_IMPLEMENTED,
+                ContentType.PLAIN_TEXT,
+                "Not implemented"
+        ).send(context.getHttpExchange());
     }
 
+    @Auth
     @GET(path = "/{userId}/profile")
     protected void getProfile(Context context) {
         System.out.println("Profile");
+        new Response(
+                HttpStatus.NOT_IMPLEMENTED,
+                ContentType.PLAIN_TEXT,
+                "Not implemented"
+        ).send(context.getHttpExchange());
     }
 
+    @Auth
     @PUT(path = "/{userId}/profile")
     protected void updateProfile(Context context) {
         System.out.println("Update Profile");
+        new Response(
+                HttpStatus.NOT_IMPLEMENTED,
+                ContentType.PLAIN_TEXT,
+                "Not implemented"
+        ).send(context.getHttpExchange());
     }
 
+    @Auth
     @GET(path = "/{userId}/recommendations")
     protected void recommendations(Context context) {
         System.out.println("Recommendations");
+        new Response(
+                HttpStatus.NOT_IMPLEMENTED,
+                ContentType.PLAIN_TEXT,
+                "Not implemented"
+        ).send(context.getHttpExchange());
     }
 
     //Authentication
@@ -56,15 +89,13 @@ public class UserHandler extends BaseHandler {
     protected void login(Context context) {
         JsonConverter<UserCredentials> converter = new JsonConverter<>(UserCredentials.class);
         UserCredentials userCredentials = converter.deserialize(context.getBody());
-        Response response = authService.login(userCredentials);
-        response.send(context.getHttpExchange());
+        authService.login(userCredentials).send(context.getHttpExchange());
     }
 
     @POST(path = "/register")
     protected void register(Context context) {
         JsonConverter<UserCredentials> converter = new JsonConverter<>(UserCredentials.class);
         UserCredentials userCredentials = converter.deserialize(context.getBody());
-        Response response = authService.register(userCredentials);
-        response.send(context.getHttpExchange());
+        authService.register(userCredentials).send(context.getHttpExchange());
     }
 }

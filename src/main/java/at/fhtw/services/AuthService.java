@@ -51,7 +51,7 @@ public class AuthService {
                 .withIssuer(issuer)
                 .withSubject(user.getUsername())
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 1))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
                 .withJWTId(UUID.randomUUID().toString())
                 .withNotBefore(new Date(System.currentTimeMillis() + 1000))
                 .sign(algorithm);
@@ -72,7 +72,9 @@ public class AuthService {
         if (userRepository.getUserByName(userCredentials.getUsername()) != null) {
             return error;
         }
-        if (!userRepository.createUser(userCredentials.toUser().hashPassword())) {
+        User user = userCredentials.toUser().hashPassword();
+        user.setId(userRepository.getUsers().size());
+        if (!userRepository.createUser(user)) {
             return error;
         }
         return new Response(
@@ -83,18 +85,28 @@ public class AuthService {
     }
 
     public boolean validateToken(String token) {
+        try {
+            DecodedJWT decodedJWT = verifier.verify(token);
+            if (decodedJWT.getExpiresAt().before(new Date())) {
+                return false;
+            }
+            if (decodedJWT.getNotBefore().after(new Date())) {
+                return false;
+            }
+            if (!decodedJWT.getIssuer().equals(issuer)) {
+                return false;
+            }
+            String userName = decodedJWT.getSubject();
+            return userRepository.getUserByName(userName) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public User getUserByToken(String token) {
         DecodedJWT decodedJWT = verifier.verify(token);
-        if (decodedJWT.getExpiresAt().before(new Date())) {
-            return false;
-        }
-        if (decodedJWT.getNotBefore().after(new Date())) {
-            return false;
-        }
-        if (!decodedJWT.getIssuer().equals(issuer)) {
-            return false;
-        }
         String userName = decodedJWT.getSubject();
-        return userRepository.getUserByName(userName) != null;
+        return userRepository.getUserByName(userName);
     }
 
 }

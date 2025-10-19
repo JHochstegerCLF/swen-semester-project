@@ -4,6 +4,8 @@ import at.fhtw.models.enums.MediaType;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class Media {
@@ -11,7 +13,19 @@ public class Media {
     private String title;
     private String description;
     private MediaType mediaType;
-    private int release_year;
-    private int age_restriction;
-    private int creator_id;
+    private int releaseYear;
+    private List<String> genres;
+    private int ageRestriction;
+    private int creatorId;
+    private int rating = 0;
+
+    public Media update(Media media) {
+        this.title = media.getTitle();
+        this.description = media.getDescription();
+        this.mediaType = media.getMediaType();
+        this.releaseYear = media.getReleaseYear();
+        this.genres = media.getGenres();
+        this.ageRestriction = media.getAgeRestriction();
+        return this;
+    }
 }
