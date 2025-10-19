@@ -1,0 +1,308 @@
+@startuml
+
+skinparam linetype ortho
+
+annotation Auth << annotation >>
+class AuthService {
+  + AuthService(UserRepository):
+  + getUserByToken(String): User
+  + login(UserCredentials): Response
+  + register(UserCredentials): Response
+  + validateToken(String): boolean
+}
+class BaseConverter<T> {
+  + BaseConverter(Class<T>):
+  + convert(T): void
+  + deserialize(String): T
+  + serialize(T): String
+}
+class BaseHandler {
+  + BaseHandler(String, AuthService):
+  - initialPath: String
+  # getMethod(HttpExchange): HttpMethod
+  # getPath(Annotation, HttpMethod): String
+  # getPathFromMethod(Method, HttpMethod): String
+  # getPathParams(String, String): Map<String, String>
+  # getQueryParams(String): Map<String, String>
+  + handle(HttpExchange): void
+  - matches(String, String): boolean
+  # splitPath(String, String): String[]
+   initialPath: String
+}
+enum ContentType << enumeration >> {
+  - ContentType(String):
+  + valueOf(String): ContentType
+  + values(): ContentType[]
+}
+class Context {
+  + Context(HttpExchange):
+  - body: String
+  - headers: Headers
+  - httpExchange: HttpExchange
+  - method: HttpMethod
+  - path: String
+  - pathParams: Map<String, String>
+  - queryParams: Map<String, String>
+  - token: String
+  # canEqual(Object): boolean
+  + close(): void
+  + equals(Object): boolean
+  + hashCode(): int
+  + toString(): String
+   body: String
+   headers: Headers
+   httpExchange: HttpExchange
+   method: HttpMethod
+   path: String
+   pathParams: Map<String, String>
+   queryParams: Map<String, String>
+   token: String
+}
+annotation DELETE << annotation >> {
+  + path(): String
+}
+annotation GET << annotation >> {
+  + path(): String
+}
+enum HttpMethod << enumeration >> {
+  - HttpMethod():
+  + valueOf(String): HttpMethod
+  + values(): HttpMethod[]
+}
+enum HttpStatus << enumeration >> {
+  - HttpStatus(int, String):
+  + valueOf(String): HttpStatus
+  + values(): HttpStatus[]
+}
+class JsonConverter<T> {
+  + JsonConverter(Class<T>):
+}
+class Main {
+  + Main():
+  + main(String[]): void
+}
+class Media {
+  + Media():
+  - ageRestriction: int
+  - creatorId: int
+  - description: String
+  - genres: List<String>
+  - id: int
+  - mediaType: MediaType
+  - rating: int
+  - releaseYear: int
+  - title: String
+  + update(Media): Media
+   ageRestriction: int
+   creatorId: int
+   description: String
+   genres: List<String>
+   id: int
+   mediaType: MediaType
+   rating: int
+   releaseYear: int
+   title: String
+}
+class MediaHandler {
+  + MediaHandler(MediaService, AuthService):
+  # addMedia(Context): void
+  # deleteMedia(Context): void
+  # favoriteMedia(Context): void
+  # getAllMedia(Context): void
+  # getMedia(Context): void
+  # rateMedia(Context): void
+  # unfavoriteMedia(Context): void
+  # updateMedia(Context): void
+}
+class MediaRepository {
+  + MediaRepository():
+  - medias: List<Media>
+  + addMedia(Media): boolean
+  + deleteMedia(int): boolean
+  + getMediaById(int): Media
+  + updateMedia(int, Media): boolean
+   media: List<Media>
+   medias: List<Media>
+}
+class MediaService {
+  + MediaService(MediaRepository):
+  + addMedia(Media): Response
+  + deleteMedia(int): Response
+  + getAllMedia(Map<String, String>): Response
+  + getMedia(int): Response
+  + updateMedia(int, Media): Response
+}
+enum MediaType << enumeration >> {
+  - MediaType():
+  + valueOf(String): MediaType
+  + values(): MediaType[]
+}
+annotation POST << annotation >> {
+  + path(): String
+}
+annotation PUT << annotation >> {
+  + path(): String
+}
+class Rating {
+  + Rating():
+  - comment: String
+  - creator: User
+  - id: int
+  - media: Media
+  - rating: int
+  - timestamp: Timestamp
+   comment: String
+   creator: User
+   id: int
+   media: Media
+   rating: int
+   timestamp: Timestamp
+}
+class RatingHandler {
+  + RatingHandler(AuthService):
+  # confirmRating(Context): void
+  # deleteRating(Context): void
+  # likeRating(Context): void
+  # updateRating(Context): void
+}
+class RatingRepository {
+  + RatingRepository():
+  + getRating(int): Rating
+}
+class RatingService {
+  + RatingService():
+}
+class Response {
+  + Response(HttpStatus, ContentType, String):
+  + Response():
+  - content: String
+  - contentType: ContentType
+  - status: HttpStatus
+  # canEqual(Object): boolean
+  + equals(Object): boolean
+  + hashCode(): int
+  + send(HttpExchange): void
+  + toString(): String
+   content: String
+   contentType: ContentType
+   status: HttpStatus
+}
+class Server {
+  + Server(UserHandler, MediaHandler, RatingHandler):
+  + start(int): void
+}
+class User {
+  + User(Integer, String, String, String, String):
+  + User():
+  - email: String
+  - favoriteGenre: String
+  - id: Integer
+  - password: String
+  - username: String
+  # canEqual(Object): boolean
+  + equals(Object): boolean
+  + hashCode(): int
+  + hashPassword(): User
+  + toString(): String
+   email: String
+   favoriteGenre: String
+   id: Integer
+   password: String
+   username: String
+}
+class UserCredentials {
+  + UserCredentials():
+  + UserCredentials(String, String):
+  - password: String
+  - username: String
+  # canEqual(Object): boolean
+  + equals(Object): boolean
+  + hashCode(): int
+  + toString(): String
+  + toUser(): User
+   password: String
+   username: String
+}
+class UserHandler {
+  + UserHandler(UserService, AuthService):
+  # favorites(Context): void
+  # getProfile(Context): void
+  # login(Context): void
+  # ratings(Context): void
+  # recommendations(Context): void
+  # register(Context): void
+  # updateProfile(Context): void
+}
+class UserProfileUpdate {
+  + UserProfileUpdate():
+}
+class UserRepository {
+  + UserRepository():
+  - users: List<User>
+  + createUser(User): boolean
+  + getUserByName(String): User
+  + getUserbyId(int): User
+  + updateUser(User): boolean
+   users: List<User>
+}
+class UserService {
+  + UserService(UserRepository):
+}
+
+AuthService     -->     UserRepository
+BaseHandler     -->     AuthService
+Context         -->     HttpMethod
+JsonConverter   --|>    BaseConverter
+Media           -->     MediaType
+MediaHandler    -->     AuthService
+MediaHandler    --|>    BaseHandler
+MediaHandler    -->     MediaService
+MediaRepository -->     Media
+MediaService    -->     MediaRepository
+Rating          -->     Media
+Rating          -->     User
+RatingHandler   --|>    BaseHandler
+Response        -->     ContentType
+Response        -->     HttpStatus
+Server          -->     MediaHandler
+Server          -->     RatingHandler
+Server          -->     UserHandler
+UserHandler     -->     AuthService
+UserHandler     --|>    BaseHandler
+UserHandler     -->     UserService
+UserRepository  -->     User
+UserService     -->     UserRepository
+MediaHandler    -->     Auth
+MediaHandler    -->     GET
+MediaHandler    -->     POST
+MediaHandler    -->     PUT
+MediaHandler    -->     DELETE
+UserHandler     -->     Auth
+UserHandler     -->     GET
+UserHandler     -->     POST
+UserHandler     -->     PUT
+RatingHandler   -->     Auth
+RatingHandler   -->     POST
+RatingHandler   -->     PUT
+RatingHandler   -->     DELETE
+UserHandler     -->     Response
+UserService     -->     Response
+MediaHandler    -->     Response
+MediaService    -->     Response
+RatingHandler   -->     Response
+RatingService   -->     Response
+RatingHandler   -->     RatingService
+RatingService   -->     RatingRepository
+RatingRepository-->     Rating
+Main            -->     Server
+MediaHandler    -->     JsonConverter
+MediaService    -->     JsonConverter
+UserHandler     -->     JsonConverter
+AuthService     -->     JsonConverter
+UserHandler     -->     UserCredentials
+UserHandler     -->     UserProfileUpdate
+AuthService     -->     UserCredentials
+MediaHandler    -->     Context
+UserHandler     -->     Context
+RatingHandler   -->     Context
+@enduml
