@@ -6,6 +6,7 @@ import at.fhtw.models.dtos.UserCredentials;
 import at.fhtw.persistence.UserRepository;
 import at.fhtw.presentation.http.ContentType;
 import at.fhtw.presentation.http.HttpStatus;
+import at.fhtw.presentation.models.LoginResponse;
 import at.fhtw.presentation.models.Response;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -55,11 +56,12 @@ public class AuthService {
                 .withJWTId(UUID.randomUUID().toString())
                 .withNotBefore(new Date(System.currentTimeMillis() + 1000))
                 .sign(algorithm);
-        JsonConverter<String> jsonConverter = new JsonConverter<>(String.class);
+        JsonConverter<LoginResponse> jsonConverter = new JsonConverter<>(LoginResponse.class);
+        LoginResponse loginResponse = new LoginResponse(token);
         return new Response(
                 HttpStatus.OK,
                 ContentType.JSON,
-                jsonConverter.serialize(token)
+                jsonConverter.serialize(loginResponse)
         );
     }
 

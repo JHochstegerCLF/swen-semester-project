@@ -27,7 +27,6 @@ class BaseHandler {
   + handle(HttpExchange): void
   - matches(String, String): boolean
   # splitPath(String, String): String[]
-   initialPath: String
 }
 enum ContentType << enumeration >> {
   - ContentType(String):
@@ -49,14 +48,6 @@ class Context {
   + equals(Object): boolean
   + hashCode(): int
   + toString(): String
-   body: String
-   headers: Headers
-   httpExchange: HttpExchange
-   method: HttpMethod
-   path: String
-   pathParams: Map<String, String>
-   queryParams: Map<String, String>
-   token: String
 }
 annotation DELETE << annotation >> {
   + path(): String
@@ -93,15 +84,6 @@ class Media {
   - releaseYear: int
   - title: String
   + update(Media): Media
-   ageRestriction: int
-   creatorId: int
-   description: String
-   genres: List<String>
-   id: int
-   mediaType: MediaType
-   rating: int
-   releaseYear: int
-   title: String
 }
 class MediaHandler {
   + MediaHandler(MediaService, AuthService):
@@ -121,8 +103,6 @@ class MediaRepository {
   + deleteMedia(int): boolean
   + getMediaById(int): Media
   + updateMedia(int, Media): boolean
-   media: List<Media>
-   medias: List<Media>
 }
 class MediaService {
   + MediaService(MediaRepository):
@@ -132,17 +112,21 @@ class MediaService {
   + getMedia(int): Response
   + updateMedia(int, Media): Response
 }
+
 enum MediaType << enumeration >> {
   - MediaType():
   + valueOf(String): MediaType
   + values(): MediaType[]
 }
+
 annotation POST << annotation >> {
   + path(): String
 }
+
 annotation PUT << annotation >> {
   + path(): String
 }
+
 class Rating {
   + Rating():
   - comment: String
@@ -151,12 +135,6 @@ class Rating {
   - media: Media
   - rating: int
   - timestamp: Timestamp
-   comment: String
-   creator: User
-   id: int
-   media: Media
-   rating: int
-   timestamp: Timestamp
 }
 class RatingHandler {
   + RatingHandler(AuthService):
@@ -183,10 +161,19 @@ class Response {
   + hashCode(): int
   + send(HttpExchange): void
   + toString(): String
-   content: String
-   contentType: ContentType
-   status: HttpStatus
 }
+
+class LoginResponse {
+  + LoginResponse(String):
+  + LoginResponse():
+  - token: String
+  # canEqual(Object): boolean
+  + equals(Object): boolean
+  + hashCode(): int
+  + send(HttpExchange): void
+  + toString(): String
+}
+
 class Server {
   + Server(UserHandler, MediaHandler, RatingHandler):
   + start(int): void
@@ -204,11 +191,6 @@ class User {
   + hashCode(): int
   + hashPassword(): User
   + toString(): String
-   email: String
-   favoriteGenre: String
-   id: Integer
-   password: String
-   username: String
 }
 class UserCredentials {
   + UserCredentials():
@@ -220,8 +202,6 @@ class UserCredentials {
   + hashCode(): int
   + toString(): String
   + toUser(): User
-   password: String
-   username: String
 }
 class UserHandler {
   + UserHandler(UserService, AuthService):
@@ -243,7 +223,6 @@ class UserRepository {
   + getUserByName(String): User
   + getUserbyId(int): User
   + updateUser(User): boolean
-   users: List<User>
 }
 class UserService {
   + UserService(UserRepository):
@@ -305,4 +284,5 @@ AuthService     -->     UserCredentials
 MediaHandler    -->     Context
 UserHandler     -->     Context
 RatingHandler   -->     Context
+AuthService     -->     LoginResponse
 @enduml

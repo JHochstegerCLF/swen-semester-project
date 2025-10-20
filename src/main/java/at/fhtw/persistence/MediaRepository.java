@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Singleton
 public class MediaRepository {
-    private List<Media> medias = new ArrayList();
+    private final List<Media> medias = new ArrayList();
 
     private List<Media> getMedia() {
         return medias;

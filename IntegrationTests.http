@@ -1,0 +1,106 @@
+@baseUrl = http://localhost:8080/api
+
+### Register
+POST {{baseUrl}}/users/register
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password": "pass123"
+}
+
+### Login
+POST {{baseUrl}}/users/login
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password": "pass123"
+}
+
+> {%
+    // Saving Token valid for 30 mins
+    client.global.set("authToken", response.body.token);
+%}
+
+### Create Media
+POST {{baseUrl}}/media
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Inception",
+  "description": "Sci-fi thriller",
+  "mediaType": "movie",
+  "releaseYear": 2010,
+  "genres": [
+    "sci-fi",
+    "thriller"
+  ],
+  "ageRestriction": 12
+}
+### Media2
+POST {{baseUrl}}/media
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Inception",
+  "description": "Sci-fi thriller",
+  "mediaType": "movie",
+  "releaseYear": 2010,
+  "genres": [
+    "sci-fi",
+    "thriller"
+  ],
+  "ageRestriction": 12
+}
+### Media3
+POST {{baseUrl}}/media
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Inception",
+  "description": "Sci-fi thriller",
+  "mediaType": "movie",
+  "releaseYear": 2010,
+  "genres": [
+    "sci-fi",
+    "thriller"
+  ],
+  "ageRestriction": 12
+}
+
+### List All
+GET {{baseUrl}}/api/media?title=incep&genre=sci-fi&sortBy=score
+Authorization: Bearer {{authToken}}
+
+### Get one
+GET {{baseUrl}}/api/media/1
+Authorization: Bearer {{authToken}}
+
+### Update
+PUT {{baseUrl}}/api/media/1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Inception Updated",
+  "description": "Updated description",
+  "mediaType": "movie",
+  "releaseYear": 2010,
+  "genres": [
+    "sci-fi",
+    "action"
+  ],
+  "ageRestriction": 16
+}
+
+### Delete
+DELETE {{baseUrl}}/api/media/1
+Authorization: Bearer {{authToken}}
+
+### Check Medias
+GET {{baseUrl}}/api/media?title=incep&genre=sci-fi&sortBy=score
+Authorization: Bearer {{authToken}}
