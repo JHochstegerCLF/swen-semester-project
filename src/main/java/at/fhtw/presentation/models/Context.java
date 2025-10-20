@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+// the Context object stores all necessary information the HandlerMethod could need to fulfill the request
 @Data
 public class Context implements AutoCloseable {
     @NonNull
@@ -41,6 +42,7 @@ public class Context implements AutoCloseable {
         }
     }
 
+    // needed by AutoClosable to close the HttpExchange cleanly
     @Override
     public void close() throws Exception {
         httpExchange.close();

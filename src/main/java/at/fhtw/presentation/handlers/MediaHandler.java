@@ -21,7 +21,9 @@ public class MediaHandler extends BaseHandler {
         MediaService mediaService,
         AuthService authService
     ) {
+        // initialized super constructor with initialPath and authService (@Inject doesnt work if needed to be called manually)
         super("/api/media", authService);
+        // injected services
         this.mediaService = mediaService;
         this.authService = authService;
     }

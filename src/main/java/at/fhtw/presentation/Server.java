@@ -20,6 +20,7 @@ public class Server {
     private final RatingHandler ratingHandler;
     private HttpServer server;
 
+    // creates a new http server and registers all handlers
     public void start(int port) throws IOException {
         server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext(userHandler.getInitialPath(), userHandler);

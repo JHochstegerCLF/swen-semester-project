@@ -23,6 +23,7 @@ public class AuthService {
     private final JWTVerifier verifier;
     private final String issuer = "MRP";
 
+    // handles everything connected to authentication including registration and login
     @Inject
     public AuthService(
             UserRepository userRepository
@@ -35,6 +36,7 @@ public class AuthService {
     }
 
     public Response login(UserCredentials userCredentials) {
+        // error response created before since used in both checks
         Response error = new Response(
                 HttpStatus.UNAUTHORIZED,
                 ContentType.PLAIN_TEXT,
@@ -42,19 +44,29 @@ public class AuthService {
         );
         User user = userCredentials.toUser().hashPassword();
         User savedUser = userRepository.getUserByName(user.getUsername());
+        // checks if user exists
         if (savedUser == null) {
             return error;
         }
+        // checks if password is correct
         if (!user.getPassword().equals(savedUser.getPassword())) {
             return error;
         }
+        // creates the jwt token with necessary information
         String token = JWT.create()
+                // who created the token
                 .withIssuer(issuer)
+                // who does the token belong to
                 .withSubject(user.getUsername())
+                // when was it issued
                 .withIssuedAt(new Date())
+                // when will it expire
                 .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
+                // unique identifier
                 .withJWTId(UUID.randomUUID().toString())
+                // when can it be used
                 .withNotBefore(new Date(System.currentTimeMillis() + 1000))
+                // sign the token with secret so only the server can verify and create it
                 .sign(algorithm);
         JsonConverter<LoginResponse> jsonConverter = new JsonConverter<>(LoginResponse.class);
         LoginResponse loginResponse = new LoginResponse(token);
@@ -86,18 +98,22 @@ public class AuthService {
         );
     }
 
+    // checks if token is valid
     public boolean validateToken(String token) {
         try {
             DecodedJWT decodedJWT = verifier.verify(token);
+            // checks for time validity
             if (decodedJWT.getExpiresAt().before(new Date())) {
                 return false;
             }
             if (decodedJWT.getNotBefore().after(new Date())) {
                 return false;
             }
+            // checks for issuer
             if (!decodedJWT.getIssuer().equals(issuer)) {
                 return false;
             }
+            // checks if the user exists
             String userName = decodedJWT.getSubject();
             return userRepository.getUserByName(userName) != null;
         } catch (Exception e) {
@@ -105,6 +121,7 @@ public class AuthService {
         }
     }
 
+    // helper method to get user by token
     public User getUserByToken(String token) {
         DecodedJWT decodedJWT = verifier.verify(token);
         String userName = decodedJWT.getSubject();

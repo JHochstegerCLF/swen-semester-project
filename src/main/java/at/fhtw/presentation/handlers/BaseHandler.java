@@ -37,27 +37,30 @@ public class BaseHandler implements HttpHandler {
         routes = new HashMap<>();
     }
 
+    // This method handles the routing and authentication for all endpoints
     @Override
     public void handle(HttpExchange httpExchange) {
+        // Create Context object which gets passed to the correct endpoint method
         Context context = new Context(httpExchange);
         String path = httpExchange.getRequestURI().getPath();
-        //Filter to correct Method
+        // Filter to correct Method
         Optional<Method> possibleRoute = Arrays.stream(this.getClass().getDeclaredMethods())
                 .filter(m -> Arrays.stream(m.getDeclaredAnnotations())
                         .anyMatch(ann -> {
                             if (!ann.annotationType().getSimpleName().equals(getMethod(httpExchange).name())) {
                                 return false;
                             }
-                            return matches(path, getPath(ann, getMethod(httpExchange)));
+                            return matches(path, getRoute(ann, getMethod(httpExchange)));
                         })
                 )
                 .findFirst();
-        //When found finish setting up context and invoke method
+        // if route found check authentication finish context and invoke method
         if (possibleRoute.isPresent()) {
             Method method = possibleRoute.get();
+            // check for authentication requirement
             if (method.isAnnotationPresent(Auth.class)) {
-                String authHeader = context.getHeaders().getFirst("Authorization");
-                if (authHeader == null) {
+                // check if token is present
+                if (context.getToken() == null) {
                     System.out.println(getMethod(httpExchange).name() + ": " + httpExchange.getRequestURI().getPath() + " -> Unauthorized: No Token");
                     new Response(
                             HttpStatus.UNAUTHORIZED,
@@ -66,8 +69,8 @@ public class BaseHandler implements HttpHandler {
                     ).send(httpExchange);
                     return;
                 }
-                String token = authHeader.replace("Bearer ", "");
-                if (!authService.validateToken(token)) {
+                // check token validity
+                if (!authService.validateToken(context.getToken())) {
                     System.out.println(getMethod(httpExchange).name() + ": " + httpExchange.getRequestURI().getPath() + " -> Unauthorized: Invalid Token");
                     new Response(
                             HttpStatus.UNAUTHORIZED,
@@ -77,13 +80,14 @@ public class BaseHandler implements HttpHandler {
                     return;
                 }
             }
+            // finish setting up context
             context.setPathParams(getPathParams(path, getPathFromMethod(method, getMethod(httpExchange))));
             context.setQueryParams(getQueryParams(httpExchange.getRequestURI().getQuery()));
             System.out.println(getMethod(httpExchange).name() + ": " + httpExchange.getRequestURI().getPath() + " -> " + method.getName());
+            // invoke method
             try {
                 method.invoke(this, context);
             } catch (InvocationTargetException | IllegalAccessException e) {
-                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         } else {
@@ -96,6 +100,7 @@ public class BaseHandler implements HttpHandler {
         }
     }
 
+    // checks if requestPath and route match ignoring possible path params
     private boolean matches(String requestPath, String route) {
         String[] requestParts = splitPath(requestPath, initialPath);
         String[] routeParts = splitPath(route, "^/");
@@ -115,6 +120,7 @@ public class BaseHandler implements HttpHandler {
         return true;
     }
 
+    // extracts path params from requestPath
     protected Map<String, String> getPathParams(String requestPath, String route) {
         String[] requestParts = splitPath(requestPath, initialPath);
         String[] routeParts = splitPath(route, "^/");
@@ -128,6 +134,7 @@ public class BaseHandler implements HttpHandler {
         return params;
     }
 
+    // extracts query params from query
     protected Map<String, String> getQueryParams(String query) {
         HashMap<String, String> params = new HashMap<>();
         if (query == null) {
@@ -145,11 +152,13 @@ public class BaseHandler implements HttpHandler {
         return HttpMethod.valueOf(httpExchange.getRequestMethod());
     }
 
+    // splits the path and removes possible prefix like "/api/users/"
     protected String[] splitPath(String path, String prefix) {
         return Arrays.stream(path.replaceFirst(prefix, "").split("/")).filter(s -> !s.isEmpty()).toArray(String[]::new);
     }
 
-    protected String getPath(Annotation annotation, HttpMethod method) {
+    // returns the route stored in the annotation
+    protected String getRoute(Annotation annotation, HttpMethod method) {
         return switch (method) {
             case GET -> ((GET) annotation).path();
             case POST -> ((POST) annotation).path();
@@ -159,6 +168,7 @@ public class BaseHandler implements HttpHandler {
         };
     }
 
+    // returns the route stored in the annotation of given Method
     protected String getPathFromMethod(Method method, HttpMethod httpMethod) {
         return switch (httpMethod) {
             case GET -> method.getAnnotation(GET.class).path();
@@ -168,5 +178,4 @@ public class BaseHandler implements HttpHandler {
             default -> null;
         };
     }
-
 }
