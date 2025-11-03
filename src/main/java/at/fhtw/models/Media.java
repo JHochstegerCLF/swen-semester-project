@@ -1,6 +1,7 @@
 package at.fhtw.models;
 
 import at.fhtw.models.enums.MediaType;
+import at.fhtw.orm.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@Entity
 public class Media {
     private int id;
     private String title;
