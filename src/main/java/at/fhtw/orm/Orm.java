@@ -2,12 +2,12 @@ package at.fhtw.orm;
 
 import at.fhtw.persistence.DBConnector;
 
-import java.sql.Connection;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Orm<T extends Object> {
@@ -19,7 +19,7 @@ public class Orm<T extends Object> {
     public Orm(Class<T> clazz, DBConnector connector) {
         this.clazz = clazz;
         this.connector = connector;
-        if(!clazz.isAnnotationPresent(Entity.class)) {
+        if (!clazz.isAnnotationPresent(Entity.class)) {
             throw new IllegalArgumentException("Class is not an entity");
         }
         if (!clazz.getAnnotation(Entity.class).name().isEmpty()) {
@@ -37,13 +37,17 @@ public class Orm<T extends Object> {
     }
 
 
-    public ArrayList<T> getAll() throws SQLException {
+    public ArrayList<T> getAll() throws SQLException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         ResultSet results = connector.sendQuery("SELECT (" + fields + ") FROM " + className);
         ArrayList<T> result = new ArrayList<T>();
         while (results.next()) {
-            result.add();
+            T instance = clazz.getConstructor().newInstance();
+            for (Field field : clazz.getDeclaredFields()) {
+                clazz.getMethod("set" + field.getName(), field.getType()).invoke(instance, results.getString(field.getName()));
+            }
+            result.add(instance);
         }
-        return "SELECT (" + fields + ") FROM " + className;
+        return result;
     }
 
 //    public T getByName(String name) {
@@ -66,4 +70,4 @@ public class Orm<T extends Object> {
 //    public T delete(int id) {
 //        return "";
 //    }
-//}
+}
