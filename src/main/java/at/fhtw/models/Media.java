@@ -1,33 +1,35 @@
 package at.fhtw.models;
 
+import at.fhtw.models.enums.Genre;
 import at.fhtw.models.enums.MediaType;
-import at.fhtw.orm.Entity;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Getter
-@Setter
-@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Media {
     private int id;
     private String title;
     private String description;
     private MediaType mediaType;
     private int releaseYear;
-    private List<String> genres;
+    private List<Genre> genres;
     private int ageRestriction;
-    private int creatorId;
+    private User creator;
     private int rating = 0;
 
-    public Media update(Media media) {
+    public void update(Media media) {
         this.title = media.getTitle();
         this.description = media.getDescription();
         this.mediaType = media.getMediaType();
         this.releaseYear = media.getReleaseYear();
         this.genres = media.getGenres();
         this.ageRestriction = media.getAgeRestriction();
-        return this;
+        this.creator = media.getCreator();
+        this.rating = media.getRating();
     }
 }

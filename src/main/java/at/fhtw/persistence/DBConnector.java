@@ -18,7 +18,7 @@ public class DBConnector {
     private String database;
 
     public void testConnect() {
-        setDatabase("postgres");
+        setDatabase("root");
         String url = getUrl();
 
         Properties properties = new Properties();
@@ -43,14 +43,22 @@ public class DBConnector {
     }
 
     public ResultSet sendQuery(String query) {
-        setDatabase("postgres");
+        try (Connection connection = this.getConnection()) {
+            return connection.prepareStatement(query).executeQuery();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Connection getConnection() {
+        setDatabase("root");
         String url = getUrl();
 
         Properties properties = new Properties();
         properties.put("user", username);
         properties.put("password", password);
-        try (Connection connection = DriverManager.getConnection(url, properties)) {
-            return connection.prepareStatement(query).executeQuery();
+        try {
+            return DriverManager.getConnection(url, properties);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

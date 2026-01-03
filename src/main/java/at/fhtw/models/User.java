@@ -1,9 +1,9 @@
 package at.fhtw.models;
 
+import at.fhtw.models.enums.Genre;
 import com.google.common.hash.Hashing;
 import lombok.*;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 @Data
@@ -14,7 +14,7 @@ public class User {
     private String username;
     private String password;
     private String email;
-    private String favoriteGenre;
+    private Genre favoriteGenre;
 
     public User hashPassword() {
         this.password = Hashing.sha256().hashString(password, StandardCharsets.UTF_8).toString();

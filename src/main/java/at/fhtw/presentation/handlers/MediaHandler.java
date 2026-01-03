@@ -18,8 +18,8 @@ public class MediaHandler extends BaseHandler {
 
     @Inject
     public MediaHandler(
-        MediaService mediaService,
-        AuthService authService
+            MediaService mediaService,
+            AuthService authService
     ) {
         // initialized super constructor with initialPath and authService (@Inject doesnt work if needed to be called manually)
         super("/api/media", authService);
@@ -39,7 +39,7 @@ public class MediaHandler extends BaseHandler {
     protected void addMedia(Context context) {
         JsonConverter<Media> jsonConverter = new JsonConverter<>(Media.class);
         Media media = jsonConverter.deserialize(context.getBody());
-        media.setCreatorId(authService.getUserByToken(context.getToken()).getId());
+        media.setCreator(authService.getUserByToken(context.getToken()));
         mediaService.addMedia(media).send(context.getHttpExchange());
     }
 
