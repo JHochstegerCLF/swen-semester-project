@@ -54,10 +54,10 @@ public class Orm<T> {
     }
 
 
-    public ArrayList<T> getAll() {
+    public List<T> getAll() {
         try (Connection connection = connector.getConnection();
              ResultSet dbResult = connection.prepareStatement("SELECT row_to_json(t) FROM " + className + " t").executeQuery()) {
-            ArrayList<T> result = new ArrayList<>();
+            List<T> result = new ArrayList<>();
             while (dbResult.next()) {
                 String jsonResult = dbResult.getString(1);
                 T instance = this.jsonConverter.deserialize(jsonResult);
@@ -118,7 +118,7 @@ public class Orm<T> {
         return null;
     }
 
-    public int persistEntity(T entity) throws SQLException {
+    public int persistEntity(T entity) {
         String jsonString = jsonConverter.serialize(entity);
         String sql = "INSERT INTO " + className + " (" + insertFields + ") SELECT " + insertFields + "FROM json_populate_record(NULL::" + className + ", ?::json) RETURNING \"id\"";
 
@@ -136,10 +136,10 @@ public class Orm<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        throw new SQLException("Insert failed, no ID returned.");
+        throw new RuntimeException("Insert failed, no ID returned.");
     }
 
-    public T update(int id, T entity) throws SQLException {
+    public T update(int id, T entity) {
         String jsonString = jsonConverter.serialize(entity);
         String sql = "UPDATE " + className + " t SET (" + insertFields + ") = (SELECT " + insertFields + "FROM json_populate_record(NULL::" + className + ", ?::json)) WHERE id = ? RETURNING row_to_json(t)";
 
@@ -160,10 +160,10 @@ public class Orm<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        throw new SQLException("Insert failed, no ID returned.");
+        throw new RuntimeException("Insert failed, no ID returned.");
     }
 
-    public void delete(int id) {
+    public boolean delete(int id) {
         String sql = "DELETE FROM " + className + " WHERE id = ?";
         try (Connection connection = connector.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -174,6 +174,7 @@ public class Orm<T> {
                 // Optional: Throw an exception if the ID didn't exist
                 throw new SQLException("Delete failed: No media found with ID " + id);
             }
+            return true;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

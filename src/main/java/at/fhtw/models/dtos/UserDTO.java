@@ -5,7 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-//@NoArgsConstructor
-//@AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDTO {
+    private Integer id;
+    private String username;
+    private String password;
+    private String email;
+    private String favoriteGenre;
 }
