@@ -1,9 +1,13 @@
 package at.fhtw.services;
 
 import at.fhtw.converter.JsonConverter;
+import at.fhtw.mapper.MediaMapper;
 import at.fhtw.models.Media;
 import at.fhtw.models.Rating;
+import at.fhtw.models.dtos.MediaDTO;
+import at.fhtw.models.entities.MediaEntity;
 import at.fhtw.persistence.MediaRepository;
+import at.fhtw.persistence.RatingRepository;
 import at.fhtw.presentation.http.ContentType;
 import at.fhtw.presentation.http.HttpStatus;
 import at.fhtw.presentation.models.Response;
@@ -18,11 +22,10 @@ import java.util.stream.Stream;
 @AllArgsConstructor(onConstructor_ = @Inject)
 public class MediaService {
     private final MediaRepository mediaRepository;
+    private final MediaMapper mediaMapper;
 
-    public Response addMedia(Media media) {
-        List<Media> medias = mediaRepository.getMedias();
-        media.setId(medias.size());
-        if (mediaRepository.addMedia(media)) {
+    public Response addMedia(MediaDTO media) {
+        if (mediaRepository.create(mediaMapper.toEntity(mediaMapper.fromDTO(media))) != -1) {
             return new Response(
                     HttpStatus.OK,
                     ContentType.PLAIN_TEXT,
@@ -38,13 +41,13 @@ public class MediaService {
     }
 
     public Response getMedia(int id) {
-        JsonConverter<Media> jsonConverter = new JsonConverter<>(Media.class);
-        Media media = mediaRepository.getMediaById(id);
+        JsonConverter<MediaDTO> jsonConverter = new JsonConverter<>(MediaDTO.class);
+        Media media = mediaMapper.fromEntity(mediaRepository.findById(id));
         if (media != null) {
             return new Response(
                     HttpStatus.OK,
                     ContentType.JSON,
-                    jsonConverter.serialize(media)
+                    jsonConverter.serialize(mediaMapper.toDTO(media))
             );
         }
         return new Response(
@@ -54,15 +57,15 @@ public class MediaService {
         );
     }
 
-    public Response updateMedia(int id, Media media) {
-        if (mediaRepository.getMediaById(id) == null) {
+    public Response updateMedia(int id, MediaDTO media) {
+        if (mediaRepository.findById(id) == null) {
             return new Response(
                     HttpStatus.NOT_FOUND,
                     ContentType.PLAIN_TEXT,
                     "Media not found"
             );
         }
-        if (mediaRepository.updateMedia(id, media)) {
+        if (mediaRepository.update(id, mediaMapper.toEntity(mediaMapper.fromDTO(media))) != null) {
             return new Response(
                     HttpStatus.OK,
                     ContentType.PLAIN_TEXT,
@@ -77,14 +80,14 @@ public class MediaService {
     }
 
     public Response deleteMedia(int id) {
-        if (mediaRepository.getMediaById(id) == null) {
+        if (mediaRepository.findById(id) == null) {
             return new Response(
                     HttpStatus.NOT_FOUND,
                     ContentType.PLAIN_TEXT,
                     "Media not found"
             );
         }
-        if (mediaRepository.deleteMedia(id)) {
+        if (mediaRepository.delete(id)) {
             return new Response(
                     HttpStatus.OK,
                     ContentType.PLAIN_TEXT,
@@ -99,20 +102,12 @@ public class MediaService {
     }
 
     public Response getAllMedia(Map<String, String> filter) {
-        List<Media> medias = mediaRepository.getMedias();
-        if (medias == null) {
-            return new Response(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    ContentType.PLAIN_TEXT,
-                    "Something went wrong"
-            );
-        }
-        Stream<Media> mediaStream = medias.stream();
+        Stream<Media> mediaStream = mediaRepository.findAll().stream().map(mediaMapper::fromEntity);
         if (filter.containsKey("title")) {
             mediaStream = mediaStream.filter(m -> m.getTitle().toLowerCase().contains(filter.get("title").toLowerCase()));
         }
         if (filter.containsKey("genre")) {
-            mediaStream = mediaStream.filter(m -> m.getGenres().stream().anyMatch(g -> g.toLowerCase().contains(filter.get("genre").toLowerCase())));
+            mediaStream = mediaStream.filter(m -> m.getGenres().stream().anyMatch(g -> Integer.parseInt(filter.get("genre")) == g.ordinal()));
         }
         if (filter.containsKey("mediaType")) {
             mediaStream = mediaStream.filter(m -> m.getMediaType().toString().toLowerCase().contains(filter.get("mediaType").toLowerCase()));
@@ -141,11 +136,12 @@ public class MediaService {
                     break;
             }
         }
+        List<MediaDTO> mediaDTOS= filteredMedias.stream().map(mediaMapper::toDTO).toList();
         JsonConverter<List> jsonConverter = new JsonConverter<>(List.class);
         return new Response(
                 HttpStatus.OK,
                 ContentType.JSON,
-                jsonConverter.serialize(filteredMedias)
+                jsonConverter.serialize(mediaDTOS)
         );
     }
 }

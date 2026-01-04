@@ -2,7 +2,10 @@ package at.fhtw.persistence;
 
 
 import at.fhtw.models.Media;
+import at.fhtw.models.entities.MediaEntity;
+import at.fhtw.orm.Orm;
 import at.fhtw.services.MediaService;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import java.lang.reflect.Array;
@@ -12,34 +15,31 @@ import java.util.Optional;
 
 @Singleton
 public class MediaRepository {
-    private final List<Media> medias = new ArrayList();
 
-    private List<Media> getMedia() {
-        return medias;
+    private final Orm<MediaEntity> mediaORM;
+
+    @Inject
+    public MediaRepository(Orm<MediaEntity> mediaORM) {
+        this.mediaORM = mediaORM;
     }
 
-    public boolean addMedia(Media media) {
-        return medias.add(media);
+    public List<MediaEntity> findAll() {
+        return mediaORM.getAll();
     }
 
-    public Media getMediaById(int id) {
-        return medias.stream().filter(m -> m.getId() == id).findFirst().orElse(null);
+    public MediaEntity findById(int id) {
+        return mediaORM.getById(id);
     }
 
-    public boolean updateMedia(int id, Media media) {
-        Optional<Media> possibleMedia = medias.stream().filter(m -> m.getId() == id).findFirst();
-        possibleMedia.ifPresent(value -> value.update(media));
-        return possibleMedia.isPresent();
-
+    public int create(MediaEntity media) {
+        return mediaORM.persistEntity(media);
     }
 
-    public boolean deleteMedia(int id) {
-        Optional<Media> possibleMedia = medias.stream().filter(m -> m.getId() == id).findFirst();
-        possibleMedia.ifPresent(medias::remove);
-        return possibleMedia.isPresent();
+    public MediaEntity update(int id, MediaEntity media) {
+        return mediaORM.update(id, media);
     }
 
-    public List<Media> getMedias() {
-        return medias;
+    public boolean delete(int id) {
+        return mediaORM.delete(id);
     }
 }

@@ -15,8 +15,8 @@ CREATE TABLE "user"(
                        "id" SERIAL NOT NULL,
                        "username" VARCHAR(255) NOT NULL,
                        "password" VARCHAR(255) NOT NULL,
-                       "email" VARCHAR(255) NOT NULL,
-                       "favoriteGenre" BIGINT NOT NULL
+                       "email" VARCHAR(255),
+                       "favoriteGenre" BIGINT
 );
 ALTER TABLE
     "user" ADD PRIMARY KEY("id");

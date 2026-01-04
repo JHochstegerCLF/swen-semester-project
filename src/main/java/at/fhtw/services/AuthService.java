@@ -1,6 +1,7 @@
 package at.fhtw.services;
 
 import at.fhtw.converter.JsonConverter;
+import at.fhtw.mapper.UserMapper;
 import at.fhtw.models.User;
 import at.fhtw.models.dtos.UserCredentials;
 import at.fhtw.persistence.UserRepository;
@@ -19,16 +20,19 @@ import java.util.UUID;
 
 public class AuthService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final Algorithm algorithm;
     private final JWTVerifier verifier;
     private final String issuer = "MRP";
 
-    // handles everything connected to authentication including registration and login
+    // handles everything connected to authentication, including registration and login
     @Inject
     public AuthService(
-            UserRepository userRepository
+            UserRepository userRepository,
+            UserMapper userMapper
     ) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
         this.algorithm = Algorithm.HMAC256("MRP-HMAC-SHA256");
         this.verifier = JWT.require(algorithm)
                 .withIssuer(issuer)
@@ -43,12 +47,12 @@ public class AuthService {
                 "Login failed"
         );
         User user = userCredentials.toUser().hashPassword();
-        User savedUser = userRepository.getUserByName(user.getUsername());
+        User savedUser = userMapper.fromEntity(userRepository.findByUsername(user.getUsername()));
         // checks if user exists
         if (savedUser == null) {
             return error;
         }
-        // checks if password is correct
+        // checks if the password is correct
         if (!user.getPassword().equals(savedUser.getPassword())) {
             return error;
         }
@@ -83,12 +87,11 @@ public class AuthService {
                 ContentType.PLAIN_TEXT,
                 "User already exists"
         );
-        if (userRepository.getUserByName(userCredentials.getUsername()) != null) {
+        if (userRepository.findByUsername(userCredentials.getUsername()) != null) {
             return error;
         }
         User user = userCredentials.toUser().hashPassword();
-        user.setId(userRepository.getUsers().size());
-        if (!userRepository.createUser(user)) {
+        if (userRepository.create(userMapper.toEntity(user)) == -1) {
             return error;
         }
         return new Response(
@@ -115,7 +118,7 @@ public class AuthService {
             }
             // checks if the user exists
             String userName = decodedJWT.getSubject();
-            return userRepository.getUserByName(userName) != null;
+            return userRepository.findByUsername(userName) != null;
         } catch (Exception e) {
             return false;
         }
@@ -125,7 +128,7 @@ public class AuthService {
     public User getUserByToken(String token) {
         DecodedJWT decodedJWT = verifier.verify(token);
         String userName = decodedJWT.getSubject();
-        return userRepository.getUserByName(userName);
+        return userMapper.fromEntity(userRepository.findByUsername(userName));
     }
 
 }

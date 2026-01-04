@@ -1,31 +1,43 @@
 package at.fhtw.persistence;
 
-import at.fhtw.models.User;
+import at.fhtw.models.entities.UserEntity;
+import at.fhtw.orm.Orm;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import java.util.*;
 
 @Singleton
 public class UserRepository {
-    private final List<User> users = new ArrayList<>();
 
-    public boolean createUser(User user) {
-        return users.add(user);
+    private final Orm<UserEntity> userORM;
+
+    @Inject
+    public UserRepository(Orm<UserEntity> userORM) {
+        this.userORM = userORM;
     }
 
-    public User getUserbyId(int id) {
-        return users.stream().filter(user -> user.getId() == id).findFirst().orElse(null);
+    public List<UserEntity> findAll() {
+        return userORM.getAll();
     }
 
-    public User getUserByName(String username) {
-        return users.stream().filter(u -> u.getUsername().equals(username)).findFirst().orElse(null);
+    public UserEntity findById(int id) {
+        return userORM.getById(id);
     }
 
-    public boolean updateUser(User user) {
-        return true;
+    public UserEntity findByUsername(String username) {
+        return userORM.getByField("username", username).getFirst();
     }
 
-    public List<User> getUsers() {
-        return users;
+    public int create(UserEntity user) {
+        return userORM.persistEntity(user);
+    }
+
+    public UserEntity update(int id, UserEntity user) {
+        return userORM.update(id, user);
+    }
+
+    public boolean delete(int id) {
+        return userORM.delete(id);
     }
 }

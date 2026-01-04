@@ -1,12 +1,43 @@
 package at.fhtw.persistence;
 
-import at.fhtw.models.Rating;
-import at.fhtw.models.User;
+import at.fhtw.models.entities.RatingEntity;
+import at.fhtw.orm.Orm;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import java.util.List;
 
 @Singleton
 public class RatingRepository {
-    public static Rating getRating(int id) {
-        return null;
+
+    private final Orm<RatingEntity> ratingOrm;
+
+    @Inject
+    public RatingRepository(Orm<RatingEntity> ratingOrm) {
+        this.ratingOrm = ratingOrm;
+    }
+
+    public List<RatingEntity> findAll() {
+        return ratingOrm.getAll();
+    }
+
+    public RatingEntity findById(int id) {
+        return ratingOrm.getById(id);
+    }
+
+    public List<RatingEntity> findByMediaId(int mediaId) {
+        return ratingOrm.getByField("mediaId", mediaId);
+    }
+
+    public int create(RatingEntity rating) {
+        return ratingOrm.persistEntity(rating);
+    }
+
+    public RatingEntity update(int id, RatingEntity rating) {
+        return ratingOrm.update(id, rating);
+    }
+
+    public boolean delete(int id) {
+        return ratingOrm.delete(id);
     }
 }

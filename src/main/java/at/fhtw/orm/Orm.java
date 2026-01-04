@@ -2,6 +2,7 @@ package at.fhtw.orm;
 
 import at.fhtw.converter.JsonConverter;
 import at.fhtw.persistence.DBConnector;
+import com.google.inject.Inject;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -19,6 +20,7 @@ public class Orm<T> {
     private final String insertFields;
     private final JsonConverter<T> jsonConverter;
 
+    @Inject
     public Orm(Class<T> clazz, DBConnector connector) {
         this.clazz = clazz;
         this.connector = connector;
@@ -120,7 +122,7 @@ public class Orm<T> {
 
     public int persistEntity(T entity) {
         String jsonString = jsonConverter.serialize(entity);
-        String sql = "INSERT INTO " + className + " (" + insertFields + ") SELECT " + insertFields + "FROM json_populate_record(NULL::" + className + ", ?::json) RETURNING \"id\"";
+        String sql = "INSERT INTO " + className + " (" + insertFields + ") SELECT " + insertFields + "FROM json_populate_record(NULL::" + className + ", ?::json) ON CONFLICT DO NOTHING RETURNING \"id\"";
 
         try (Connection connection = connector.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -131,12 +133,13 @@ public class Orm<T> {
             try (ResultSet dbResult = stmt.executeQuery()) {
                 if (dbResult.next()) {
                     return dbResult.getInt(1);
+                } else {
+                    return -1;
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        throw new RuntimeException("Insert failed, no ID returned.");
     }
 
     public T update(int id, T entity) {
@@ -155,12 +158,13 @@ public class Orm<T> {
                 if (dbResult.next()) {
                     String jsonResult = dbResult.getString(1);
                     return this.jsonConverter.deserialize(jsonResult);
+                } else {
+                    return null;
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        throw new RuntimeException("Insert failed, no ID returned.");
     }
 
     public boolean delete(int id) {

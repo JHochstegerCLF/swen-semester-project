@@ -2,6 +2,8 @@ package at.fhtw.presentation.handlers;
 
 import at.fhtw.converter.JsonConverter;
 import at.fhtw.models.Media;
+import at.fhtw.models.dtos.MediaDTO;
+import at.fhtw.models.entities.MediaEntity;
 import at.fhtw.presentation.annotations.*;
 import at.fhtw.presentation.http.ContentType;
 import at.fhtw.presentation.http.HttpStatus;
@@ -37,9 +39,9 @@ public class MediaHandler extends BaseHandler {
     @Auth
     @POST(path = "/")
     protected void addMedia(Context context) {
-        JsonConverter<Media> jsonConverter = new JsonConverter<>(Media.class);
-        Media media = jsonConverter.deserialize(context.getBody());
-        media.setCreator(authService.getUserByToken(context.getToken()));
+        JsonConverter<MediaDTO> jsonConverter = new JsonConverter<>(MediaDTO.class);
+        MediaDTO media = jsonConverter.deserialize(context.getBody());
+        media.setCreatorId(authService.getUserByToken(context.getToken()).getId());
         mediaService.addMedia(media).send(context.getHttpExchange());
     }
 
@@ -54,8 +56,8 @@ public class MediaHandler extends BaseHandler {
     @PUT(path = "/{mediaId}")
     protected void updateMedia(Context context) {
         int id = Integer.parseInt(context.getPathParams().get("mediaId"));
-        JsonConverter<Media> jsonConverter = new JsonConverter<>(Media.class);
-        Media media = jsonConverter.deserialize(context.getBody());
+        JsonConverter<MediaDTO> jsonConverter = new JsonConverter<>(MediaDTO.class);
+        MediaDTO media = jsonConverter.deserialize(context.getBody());
         mediaService.updateMedia(id, media).send(context.getHttpExchange());
     }
 
