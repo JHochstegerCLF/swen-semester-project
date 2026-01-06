@@ -5,7 +5,7 @@ import at.fhtw.orm.Orm;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import java.util.*;
+import java.util.List;
 
 @Singleton
 public class UserRepository {

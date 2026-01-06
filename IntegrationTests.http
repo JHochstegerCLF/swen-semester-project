@@ -39,6 +39,7 @@ Content-Type: application/json
   ],
   "ageRestriction": 12
 }
+
 ### Media2
 POST {{baseUrl}}/media
 Authorization: Bearer {{authToken}}
@@ -55,6 +56,7 @@ Content-Type: application/json
   ],
   "ageRestriction": 12
 }
+
 ### Media3
 POST {{baseUrl}}/media
 Authorization: Bearer {{authToken}}

@@ -3,7 +3,6 @@ package at.fhtw.converter;
 import at.fhtw.orm.Param;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
-import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
 public class ParamIntrospector extends JacksonAnnotationIntrospector {

@@ -1,17 +1,12 @@
 package at.fhtw.persistence;
 
 
-import at.fhtw.models.Media;
 import at.fhtw.models.entities.MediaEntity;
 import at.fhtw.orm.Orm;
-import at.fhtw.services.MediaService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Singleton
 public class MediaRepository {

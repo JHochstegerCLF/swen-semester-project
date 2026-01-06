@@ -32,7 +32,7 @@ public class BaseConverter<T> {
         final String GREEN = "\u001B[32m";
         final String RESET = "\u001B[0m";
 
-        String serialized  = serialize(obj);
+        String serialized = serialize(obj);
         System.out.println(CYAN + this.getClass().getSimpleName() + RESET);
         System.out.println(GREEN + serialized + RESET);
         T deserialized = deserialize(serialized);
