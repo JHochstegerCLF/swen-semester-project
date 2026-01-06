@@ -23,9 +23,13 @@ public class Response {
         httpExchange.getResponseHeaders().add("Content-Type", contentType.type);
 
         try (httpExchange) {
-            byte[] responseBody = content.getBytes(StandardCharsets.UTF_8);
-            httpExchange.sendResponseHeaders(status.code, responseBody.length);
-            httpExchange.getResponseBody().write(responseBody);
+            if (status == HttpStatus.NO_CONTENT) {
+                httpExchange.sendResponseHeaders(status.code, -1);
+            } else {
+                byte[] responseBody = content.getBytes(StandardCharsets.UTF_8);
+                httpExchange.sendResponseHeaders(status.code, responseBody.length);
+                httpExchange.getResponseBody().write(responseBody);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

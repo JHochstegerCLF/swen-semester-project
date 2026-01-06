@@ -26,7 +26,11 @@ public class UserRepository {
     }
 
     public UserEntity findByUsername(String username) {
-        return userORM.getByField("username", username).getFirst();
+        List<UserEntity> users = userORM.getByField("username", username);
+        if (users == null || users.isEmpty()) {
+            return null;
+        }
+        return users.getFirst();
     }
 
     public int create(UserEntity user) {

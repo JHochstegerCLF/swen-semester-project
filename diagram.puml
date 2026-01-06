@@ -4,14 +4,21 @@ skinparam linetype ortho
 
 annotation Auth << annotation >>
 class AuthService {
-  + AuthService(UserRepository):
+  + AuthService(UserRepository, IUserMapper):
+  - userMapper: IUserMapper
+  - algorithm: Algorithm
+  - issuer: String
+  - userRepository: UserRepository
+  - verifier: JWTVerifier
   + getUserByToken(String): User
-  + login(UserCredentials): Response
-  + register(UserCredentials): Response
+  + login(UserCredentialsDTO): Response
+  + register(UserCredentialsDTO): Response
   + validateToken(String): boolean
 }
 class BaseConverter<T> {
   + BaseConverter(Class<T>):
+  # type: Class<T>
+  # objectMapper: ObjectMapper
   + convert(T): void
   + deserialize(String): T
   + serialize(T): String
@@ -19,270 +26,1021 @@ class BaseConverter<T> {
 class BaseHandler {
   + BaseHandler(String, AuthService):
   - initialPath: String
-  # getMethod(HttpExchange): HttpMethod
-  # getPath(Annotation, HttpMethod): String
+  - param: String
+  - authService: AuthService
+  - routes: Map<Pair<HttpMethod, String>, Consumer<HttpExchange>>
   # getPathFromMethod(Method, HttpMethod): String
   # getPathParams(String, String): Map<String, String>
   # getQueryParams(String): Map<String, String>
   + handle(HttpExchange): void
-  - matches(String, String): boolean
   # splitPath(String, String): String[]
+  + getInitialPath(): String
+  # getMethod(HttpExchange): HttpMethod
+  # getRoute(Annotation, HttpMethod): String
+  - matches(String, String): boolean
 }
 enum ContentType << enumeration >> {
   - ContentType(String):
-  + valueOf(String): ContentType
+  + type: String
+  + HTML:
+  + JSON:
+  + PLAIN_TEXT:
   + values(): ContentType[]
+  + valueOf(String): ContentType
 }
 class Context {
   + Context(HttpExchange):
-  - body: String
-  - headers: Headers
-  - httpExchange: HttpExchange
-  - method: HttpMethod
-  - path: String
-  - pathParams: Map<String, String>
-  - queryParams: Map<String, String>
   - token: String
-  # canEqual(Object): boolean
-  + close(): void
+  - httpExchange: HttpExchange
+  - pathParams: Map<String, String>
+  - headers: Headers
+  - path: String
+  - method: HttpMethod
+  - body: String
+  - queryParams: Map<String, String>
+  + setMethod(HttpMethod): void
   + equals(Object): boolean
+  + getToken(): String
+  # canEqual(Object): boolean
+  + setHeaders(Headers): void
+  + close(): void
+  + setPath(String): void
+  + getMethod(): HttpMethod
+  + setHttpExchange(HttpExchange): void
   + hashCode(): int
+  + setQueryParams(Map<String, String>): void
+  + getHttpExchange(): HttpExchange
+  + getHeaders(): Headers
+  + getQueryParams(): Map<String, String>
+  + getBody(): String
   + toString(): String
+  + getPath(): String
+  + setBody(String): void
+  + setToken(String): void
+  + getPathParams(): Map<String, String>
+  + setPathParams(Map<String, String>): void
+}
+class DBConnector {
+  + DBConnector():
+  - username: String
+  - host: String
+  - port: int
+  - password: String
+  - database: String
+  + setDatabase(String): void
+  + testConnect(): void
+  - getUrl(): String
+  + sendQuery(String): ResultSet
+  + getConnection(): Connection
 }
 annotation DELETE << annotation >> {
   + path(): String
 }
+annotation Entity << annotation >> {
+  + name(): String
+}
+class Favorite {
+  + Favorite(int, User, Media):
+  + Favorite():
+  - id: int
+  - media: Media
+  - user: User
+  + getUser(): User
+  # canEqual(Object): boolean
+  + hashCode(): int
+  + getMedia(): Media
+  + equals(Object): boolean
+  + toString(): String
+  + setId(int): void
+  + setMedia(Media): void
+  + getId(): int
+  + setUser(User): void
+}
+class FavoriteDTO {
+  + FavoriteDTO(int, int, int):
+  + FavoriteDTO():
+  - media: int
+  - id: int
+  - user: int
+  + getMedia(): int
+  + equals(Object): boolean
+  + setId(int): void
+  + setUser(int): void
+  # canEqual(Object): boolean
+  + toString(): String
+  + getId(): int
+  + setMedia(int): void
+  + hashCode(): int
+  + getUser(): int
+}
+class FavoriteEntity {
+  + FavoriteEntity(int, int, int):
+  + FavoriteEntity():
+  - user: int
+  - id: int
+  - media: int
+  + toString(): String
+  + getId(): int
+  + setId(int): void
+  + setUser(int): void
+  + setMedia(int): void
+  + hashCode(): int
+  + getUser(): int
+  + equals(Object): boolean
+  # canEqual(Object): boolean
+  + getMedia(): int
+}
+class FavoriteMapper {
+  + FavoriteMapper(UserRepository, MediaRepository, IUserMapper, IMediaMapper):
+  - mediaMapper: IMediaMapper
+  - userRepository: UserRepository
+  - mediaRepository: MediaRepository
+  - userMapper: IUserMapper
+  + toDTO(Favorite): FavoriteDTO
+  + fromDTO(FavoriteDTO): Favorite
+  + toEntity(Favorite): FavoriteEntity
+  + fromEntity(FavoriteEntity): Favorite
+}
+class FavoriteMapperTest {
+  + FavoriteMapperTest():
+  - userMapper: IUserMapper
+  - favoriteMapper: FavoriteMapper
+  - userRepository: UserRepository
+  - mediaRepository: MediaRepository
+  - mediaMapper: IMediaMapper
+  ~ testToEntity(): void
+  ~ setUp(): void
+  ~ testToDTO(): void
+  ~ testFromDTO(): void
+  ~ testFromEntity(): void
+}
+class FavoriteRepository {
+  + FavoriteRepository(Orm<FavoriteEntity>):
+  - favoriteORM: Orm<FavoriteEntity>
+  + delete(int): boolean
+  + findByUserId(int): List<FavoriteEntity>
+  + findByMediaId(int): List<FavoriteEntity>
+  + create(FavoriteEntity): int
+}
+class FavoriteService {
+  + FavoriteService(FavoriteRepository, FavoriteMapper, MediaRepository, UserRepository):
+  - favoriteMapper: FavoriteMapper
+  - favoriteRepository: FavoriteRepository
+  - mediaRepository: MediaRepository
+  - userRepository: UserRepository
+  + deleteFavorite(FavoriteDTO): Response
+  + getFavorites(int): Response
+  + addFavorite(FavoriteDTO): Response
+}
 annotation GET << annotation >> {
   + path(): String
 }
+enum Genre << enumeration >> {
+  - Genre():
+  + STRATEGY:
+  + DRAMA:
+  + HORROR:
+  + SIMULATION:
+  + PARTY:
+  + WESTERN:
+  + COMEDY:
+  + DEVOTIONAL:
+  + PUZZLE:
+  + ANIMATION:
+  + ACTION_AND_ADVENTURE:
+  + HISTORICAL:
+  + ARCADE:
+  + SCIENCE_FICTION:
+  + RPG:
+  + valueOf(String): Genre
+  + values(): Genre[]
+}
 enum HttpMethod << enumeration >> {
   - HttpMethod():
+  + PUT:
+  + DELETE:
+  + GET:
+  + POST:
+  + PATCH:
   + valueOf(String): HttpMethod
   + values(): HttpMethod[]
 }
 enum HttpStatus << enumeration >> {
   - HttpStatus(int, String):
+  + CREATED:
+  + NOT_IMPLEMENTED:
+  + ACCEPTED:
+  + CONFLICT:
+  + INTERNAL_SERVER_ERROR:
+  + NO_CONTENT:
+  + FORBIDDEN:
+  + NOT_FOUND:
+  + code: int
+  + BAD_REQUEST:
+  + message: String
+  + OK:
+  + UNAUTHORIZED:
   + valueOf(String): HttpStatus
   + values(): HttpStatus[]
 }
+interface IMediaMapper << interface >> {
+  + fromDTO(MediaDTO): Media
+  + toDTO(Media): MediaDTO
+  + toEntity(Media): MediaEntity
+  + fromEntity(MediaEntity): Media
+}
+interface IRatingMapper << interface >> {
+  + toDTO(Rating): RatingDTO
+  + fromEntity(RatingEntity): Rating
+  + fromDTO(RatingDTO): Rating
+  + toEntity(Rating): RatingEntity
+}
+interface IUserMapper << interface >> {
+  + toEntity(User): UserEntity
+  + fromDTO(UserDTO): User
+  + toDTO(User): UserDTO
+  + fromEntity(UserEntity): User
+}
 class JsonConverter<T> {
   + JsonConverter(Class<T>):
+}
+class JsonConverterTest {
+  + JsonConverterTest():
+  - mediaConverter: JsonConverter<MediaDTO>
+  - userConverter: JsonConverter<UserDTO>
+  ~ testSerializeUserDTO(): void
+  ~ testSerializeNull(): void
+  ~ testDeserializeMediaDTO(): void
+  ~ testDeserializeUserDTO(): void
+  ~ testSerializeMediaDTO(): void
+}
+annotation Key << annotation >>
+class Like {
+  + Like(int, User, Rating):
+  + Like():
+  - rating: Rating
+  - id: int
+  - user: User
+  + getUser(): User
+  + setUser(User): void
+  # canEqual(Object): boolean
+  + getRating(): Rating
+  + setId(int): void
+  + equals(Object): boolean
+  + hashCode(): int
+  + toString(): String
+  + getId(): int
+  + setRating(Rating): void
+}
+class LikeDTO {
+  + LikeDTO(int, int, int):
+  + LikeDTO():
+  - id: int
+  - rating: int
+  - user: int
+  + getRating(): int
+  + setUser(int): void
+  + setRating(int): void
+  # canEqual(Object): boolean
+  + hashCode(): int
+  + toString(): String
+  + getId(): int
+  + equals(Object): boolean
+  + getUser(): int
+  + setId(int): void
+}
+class LikeEntity {
+  + LikeEntity():
+  + LikeEntity(int, int, int):
+  - id: int
+  - user: int
+  - rating: int
+  + toString(): String
+  + hashCode(): int
+  + getRating(): int
+  + setRating(int): void
+  + getUser(): int
+  + setUser(int): void
+  + setId(int): void
+  + getId(): int
+  + equals(Object): boolean
+  # canEqual(Object): boolean
+}
+class LikeMapper {
+  + LikeMapper(UserRepository, RatingRepository, IUserMapper, RatingMapper):
+  - ratingMapper: RatingMapper
+  - userRepository: UserRepository
+  - ratingRepository: RatingRepository
+  - userMapper: IUserMapper
+  + fromEntity(LikeEntity): Like
+  + toDTO(Like): LikeDTO
+  + fromDTO(LikeDTO): Like
+  + toEntity(Like): LikeEntity
+}
+class LikeMapperTest {
+  + LikeMapperTest():
+  - userRepository: UserRepository
+  - ratingMapper: RatingMapper
+  - ratingRepository: RatingRepository
+  - likeMapper: LikeMapper
+  - userMapper: IUserMapper
+  ~ testToDTO(): void
+  ~ testToEntity(): void
+  ~ testFromEntity(): void
+  ~ setUp(): void
+  ~ testFromDTO(): void
+}
+class LikeRepository {
+  + LikeRepository(Orm<LikeEntity>):
+  - likeORM: Orm<LikeEntity>
+  + findByUserId(int): List<LikeEntity>
+  + create(LikeEntity): int
+  + delete(int): boolean
+  + deleteByRatingId(int): void
+  + findByRatingId(int): List<LikeEntity>
+}
+class LoginResponse {
+  + LoginResponse(int, String):
+  + LoginResponse():
+  - id: int
+  - token: String
+  + setToken(String): void
+  + equals(Object): boolean
+  # canEqual(Object): boolean
+  + getToken(): String
+  + getId(): int
+  + hashCode(): int
+  + toString(): String
+  + setId(int): void
 }
 class Main {
   + Main():
   + main(String[]): void
 }
 class Media {
+  + Media(int, String, String, MediaType, int, List<Genre>, int, User, double, List<Rating>):
   + Media():
-  - ageRestriction: int
-  - creatorId: int
+  - genres: List<Genre>
+  - creator: User
+  - id: int
   - description: String
+  - releaseYear: int
+  - ageRestriction: int
+  - ratings: List<Rating>
+  - title: String
+  - rating: double
+  - mediaType: MediaType
+  + setGenres(List<Genre>): void
+  + getGenres(): List<Genre>
+  + setDescription(String): void
+  + setMediaType(MediaType): void
+  + setRating(double): void
+  + setReleaseYear(int): void
+  + setCreator(User): void
+  + getRating(): double
+  + setRatings(List<Rating>): void
+  + getTitle(): String
+  # canEqual(Object): boolean
+  + hashCode(): int
+  + getMediaType(): MediaType
+  + setAgeRestriction(int): void
+  + update(Media): void
+  + setTitle(String): void
+  + toString(): String
+  + getAgeRestriction(): int
+  + getRatings(): List<Rating>
+  + setId(int): void
+  + getId(): int
+  + getDescription(): String
+  + equals(Object): boolean
+  + getReleaseYear(): int
+  + getCreator(): User
+}
+class MediaDTO {
+  + MediaDTO(int, String, String, String, int, List<String>, int, int, double):
+  + MediaDTO():
   - genres: List<String>
   - id: int
-  - mediaType: MediaType
-  - rating: int
   - releaseYear: int
+  - ageRestriction: int
+  - creatorId: int
   - title: String
-  + update(Media): Media
+  - mediaType: String
+  - rating: double
+  - description: String
+  + setId(int): void
+  + getGenres(): List<String>
+  + setReleaseYear(int): void
+  + setCreatorId(int): void
+  + getId(): int
+  + setMediaType(String): void
+  + getMediaType(): String
+  + setAgeRestriction(int): void
+  + getRating(): double
+  + setGenres(List<String>): void
+  + hashCode(): int
+  + setRating(double): void
+  + getCreatorId(): int
+  + setDescription(String): void
+  + getDescription(): String
+  + getAgeRestriction(): int
+  + toString(): String
+  + getReleaseYear(): int
+  + setTitle(String): void
+  # canEqual(Object): boolean
+  + equals(Object): boolean
+  + getTitle(): String
+}
+class MediaEntity {
+  + MediaEntity():
+  + MediaEntity(int, String, String, Integer, int, List<Integer>, int, int):
+  - ageRestriction: int
+  - mediaType: Integer
+  - releaseYear: int
+  - genres: List<Integer>
+  - id: int
+  - title: String
+  - creatorId: int
+  - description: String
+  + getGenres(): List<Integer>
+  + getAgeRestriction(): int
+  # canEqual(Object): boolean
+  + getId(): int
+  + getDescription(): String
+  + equals(Object): boolean
+  + setId(int): void
+  + hashCode(): int
+  + setDescription(String): void
+  + getMediaType(): Integer
+  + getTitle(): String
+  + setAgeRestriction(int): void
+  + setCreatorId(int): void
+  + setMediaType(Integer): void
+  + getReleaseYear(): int
+  + getCreatorId(): int
+  + setTitle(String): void
+  + setGenres(List<Integer>): void
+  + setReleaseYear(int): void
+  + toString(): String
 }
 class MediaHandler {
-  + MediaHandler(MediaService, AuthService):
-  # addMedia(Context): void
-  # deleteMedia(Context): void
-  # favoriteMedia(Context): void
-  # getAllMedia(Context): void
+  + MediaHandler(MediaService, AuthService, RatingService, FavoriteService):
+  - mediaService: MediaService
+  - favoriteService: FavoriteService
+  - authService: AuthService
+  - ratingService: RatingService
   # getMedia(Context): void
-  # rateMedia(Context): void
+  # addMedia(Context): void
+  # favoriteMedia(Context): void
   # unfavoriteMedia(Context): void
+  # deleteMedia(Context): void
   # updateMedia(Context): void
+  # getAllMedia(Context): void
+  # rateMedia(Context): void
+}
+class MediaMapper {
+  + MediaMapper(UserRepository, RatingRepository, IUserMapper, IRatingMapper):
+  - ratingRepository: RatingRepository
+  - userRepository: UserRepository
+  - ratingMapper: IRatingMapper
+  - userMapper: IUserMapper
+  + fromDTO(MediaDTO): Media
+  + toEntity(Media): MediaEntity
+  + fromEntity(MediaEntity): Media
+  + toDTO(Media): MediaDTO
+}
+class MediaMapperTest {
+  + MediaMapperTest():
+  - ratingRepository: RatingRepository
+  - userRepository: UserRepository
+  - userMapper: IUserMapper
+  - mediaMapper: MediaMapper
+  - ratingMapper: IRatingMapper
+  ~ setUp(): void
+  ~ testFromDTO(): void
+  ~ testGenreMapping(): void
+  ~ testFromEntity(): void
+  ~ testToEntity(): void
+  ~ testToDTO(): void
 }
 class MediaRepository {
-  + MediaRepository():
-  - medias: List<Media>
-  + addMedia(Media): boolean
-  + deleteMedia(int): boolean
-  + getMediaById(int): Media
-  + updateMedia(int, Media): boolean
+  + MediaRepository(Orm<MediaEntity>):
+  - mediaORM: Orm<MediaEntity>
+  + update(int, MediaEntity): MediaEntity
+  + create(MediaEntity): int
+  + findAll(): List<MediaEntity>
+  + findById(int): MediaEntity
+  + delete(int): boolean
 }
 class MediaService {
-  + MediaService(MediaRepository):
-  + addMedia(Media): Response
+  + MediaService(MediaRepository, MediaMapper):
+  - mediaMapper: MediaMapper
+  - mediaRepository: MediaRepository
+  + updateMedia(MediaDTO): Response
   + deleteMedia(int): Response
   + getAllMedia(Map<String, String>): Response
   + getMedia(int): Response
-  + updateMedia(int, Media): Response
+  + addMedia(MediaDTO): Response
 }
-
 enum MediaType << enumeration >> {
   - MediaType():
-  + valueOf(String): MediaType
+  + GAME:
+  + MOVIE:
+  + SERIES:
   + values(): MediaType[]
+  + valueOf(String): MediaType
 }
-
+class Module {
+  + Module():
+  # configure(): void
+  + provideRatingOrm(DBConnector): Orm<RatingEntity>
+  + provideDBConnector(): DBConnector
+  + provideMediaOrm(DBConnector): Orm<MediaEntity>
+  + provideUserOrm(DBConnector): Orm<UserEntity>
+  + provideLikeOrm(DBConnector): Orm<LikeEntity>
+  + provideFavoriteOrm(DBConnector): Orm<FavoriteEntity>
+}
+class Orm<T> {
+  + Orm(Class<T>, DBConnector):
+  - jsonConverter: JsonConverter<T>
+  - clazz: Class<T>
+  - fields: String
+  - className: String
+  - insertFields: String
+  - connector: DBConnector
+  + getById(int): T
+  + getByField(String, Object): ArrayList<T>
+  + update(int, T): T
+  + persistEntity(T): int
+  + getAll(): List<T>
+  + delete(int): boolean
+}
 annotation POST << annotation >> {
   + path(): String
 }
-
 annotation PUT << annotation >> {
   + path(): String
 }
-
+annotation Param << annotation >> {
+  + name(): String
+}
+class ParamIntrospector {
+  + ParamIntrospector():
+  + findNameForSerialization(Annotated): PropertyName
+  + findNameForDeserialization(Annotated): PropertyName
+}
 class Rating {
+  + Rating(int, User, Media, int, String, LocalDateTime, boolean):
   + Rating():
-  - comment: String
-  - creator: User
   - id: int
   - media: Media
+  - creator: User
+  - comment: String
+  - timestamp: LocalDateTime
   - rating: int
-  - timestamp: Timestamp
+  - confirmed: boolean
+  + setRating(int): void
+  + setComment(String): void
+  + equals(Object): boolean
+  # canEqual(Object): boolean
+  + getRating(): int
+  + setCreator(User): void
+  + toString(): String
+  + isConfirmed(): boolean
+  + getMedia(): Media
+  + getCreator(): User
+  + setTimestamp(LocalDateTime): void
+  + setId(int): void
+  + hashCode(): int
+  + setConfirmed(boolean): void
+  + getTimestamp(): LocalDateTime
+  + getId(): int
+  + getComment(): String
+  + setMedia(Media): void
+}
+class RatingDTO {
+  + RatingDTO(int, int, int, int, String, LocalDateTime, boolean):
+  + RatingDTO():
+  - confirmed: boolean
+  - rating: int
+  - id: int
+  - comment: String
+  - mediaId: int
+  - timestamp: LocalDateTime
+  - creatorId: int
+  + getMediaId(): int
+  + isConfirmed(): boolean
+  + setRating(int): void
+  + getId(): int
+  + setComment(String): void
+  + getCreatorId(): int
+  + getRating(): int
+  + equals(Object): boolean
+  + toString(): String
+  + hashCode(): int
+  + setConfirmed(boolean): void
+  # canEqual(Object): boolean
+  + setId(int): void
+  + setTimestamp(LocalDateTime): void
+  + getComment(): String
+  + getTimestamp(): LocalDateTime
+  + setMediaId(int): void
+  + setCreatorId(int): void
+}
+class RatingEntity {
+  + RatingEntity():
+  + RatingEntity(int, int, int, int, String, LocalDateTime, boolean):
+  - mediaId: int
+  - creatorId: int
+  - timestamp: LocalDateTime
+  - rating: int
+  - confirmed: boolean
+  - comment: String
+  - id: int
+  + getCreatorId(): int
+  + setCreatorId(int): void
+  + getTimestamp(): LocalDateTime
+  + equals(Object): boolean
+  + getComment(): String
+  + setId(int): void
+  + getRating(): int
+  + setRating(int): void
+  + getMediaId(): int
+  + setComment(String): void
+  + hashCode(): int
+  + isConfirmed(): boolean
+  + getId(): int
+  + setMediaId(int): void
+  + setConfirmed(boolean): void
+  + toString(): String
+  + setTimestamp(LocalDateTime): void
+  # canEqual(Object): boolean
 }
 class RatingHandler {
-  + RatingHandler(AuthService):
-  # confirmRating(Context): void
-  # deleteRating(Context): void
-  # likeRating(Context): void
+  + RatingHandler(RatingService, AuthService):
+  - ratingService: RatingService
+  - authService: AuthService
   # updateRating(Context): void
+  # confirmRating(Context): void
+  # likeRating(Context): void
+  # deleteRating(Context): void
+}
+class RatingMapper {
+  + RatingMapper(UserRepository, MediaRepository, IUserMapper, IMediaMapper):
+  - mediaRepository: MediaRepository
+  - mediaMapper: IMediaMapper
+  - userMapper: IUserMapper
+  - userRepository: UserRepository
+  + toDTO(Rating): RatingDTO
+  + toEntity(Rating): RatingEntity
+  + fromEntity(RatingEntity): Rating
+  + fromDTO(RatingDTO): Rating
+}
+class RatingMapperTest {
+  + RatingMapperTest():
+  - mediaMapper: IMediaMapper
+  - userRepository: UserRepository
+  - userMapper: IUserMapper
+  - mediaRepository: MediaRepository
+  - ratingMapper: RatingMapper
+  ~ testFromEntity(): void
+  ~ testToEntity(): void
+  ~ testToDTO(): void
+  ~ testFromDTO(): void
+  ~ setUp(): void
 }
 class RatingRepository {
-  + RatingRepository():
-  + getRating(int): Rating
+  + RatingRepository(Orm<RatingEntity>):
+  - ratingOrm: Orm<RatingEntity>
+  + findByUserId(int): List<RatingEntity>
+  + update(int, RatingEntity): RatingEntity
+  + create(RatingEntity): int
+  + findByMediaId(int): List<RatingEntity>
+  + delete(int): boolean
+  + findAll(): List<RatingEntity>
+  + findById(int): RatingEntity
 }
 class RatingService {
-  + RatingService():
+  + RatingService(RatingRepository, RatingMapper, LikeRepository, LikeMapper, UserRepository, MediaRepository, MediaMapper):
+  - userRepository: UserRepository
+  - mediaRepository: MediaRepository
+  - likeMapper: LikeMapper
+  - ratingMapper: RatingMapper
+  - likeRepository: LikeRepository
+  - ratingRepository: RatingRepository
+  - mediaMapper: MediaMapper
+  + confirmRating(int, int): Response
+  + getRatings(int): Response
+  + addLike(LikeDTO): Response
+  + updateRating(RatingDTO, int): Response
+  + deleteRating(int, int): Response
+  + addRating(RatingDTO): Response
 }
 class Response {
   + Response(HttpStatus, ContentType, String):
   + Response():
   - content: String
-  - contentType: ContentType
   - status: HttpStatus
-  # canEqual(Object): boolean
-  + equals(Object): boolean
+  - contentType: ContentType
   + hashCode(): int
+  + getContentType(): ContentType
+  + getContent(): String
   + send(HttpExchange): void
-  + toString(): String
-}
-
-class LoginResponse {
-  + LoginResponse(String):
-  + LoginResponse():
-  - token: String
-  # canEqual(Object): boolean
   + equals(Object): boolean
-  + hashCode(): int
-  + send(HttpExchange): void
   + toString(): String
+  + setContentType(ContentType): void
+  + setStatus(HttpStatus): void
+  + getStatus(): HttpStatus
+  + setContent(String): void
+  # canEqual(Object): boolean
 }
-
 class Server {
   + Server(UserHandler, MediaHandler, RatingHandler):
+  - ratingHandler: RatingHandler
+  - server: HttpServer
+  - userHandler: UserHandler
+  - mediaHandler: MediaHandler
   + start(int): void
 }
 class User {
-  + User(Integer, String, String, String, String):
+  + User(Integer, String, String, String, Genre, List<Media>, List<Rating>):
   + User():
+  - password: String
+  - favoriteGenre: Genre
   - email: String
+  - favorites: List<Media>
+  - ratings: List<Rating>
+  - id: Integer
+  - username: String
+  + setEmail(String): void
+  + hashCode(): int
+  + getUsername(): String
+  + getEmail(): String
+  + getFavorites(): List<Media>
+  + getId(): Integer
+  + setUsername(String): void
+  + getPassword(): String
+  # canEqual(Object): boolean
+  + setFavoriteGenre(Genre): void
+  + setRatings(List<Rating>): void
+  + equals(Object): boolean
+  + getRatings(): List<Rating>
+  + setId(Integer): void
+  + setFavorites(List<Media>): void
+  + toString(): String
+  + hashPassword(): User
+  + setPassword(String): void
+  + getFavoriteGenre(): Genre
+}
+class UserCredentialsDTO {
+  + UserCredentialsDTO(String, String):
+  + UserCredentialsDTO():
+  - username: String
+  - password: String
+  + getUsername(): String
+  + setUsername(String): void
+  + toUser(): User
+  + equals(Object): boolean
+  + toString(): String
+  + hashCode(): int
+  + getPassword(): String
+  + setPassword(String): void
+  # canEqual(Object): boolean
+}
+class UserDTO {
+  + UserDTO(Integer, String, String, String, String, List<MediaDTO>):
+  + UserDTO():
+  - username: String
   - favoriteGenre: String
+  - email: String
+  - id: Integer
+  - favorites: List<MediaDTO>
+  - password: String
+  + setPassword(String): void
+  + hashCode(): int
+  + getId(): Integer
+  + getPassword(): String
+  + setEmail(String): void
+  + getFavorites(): List<MediaDTO>
+  + setFavorites(List<MediaDTO>): void
+  + toString(): String
+  + getFavoriteGenre(): String
+  + setId(Integer): void
+  + equals(Object): boolean
+  + setFavoriteGenre(String): void
+  + getUsername(): String
+  # canEqual(Object): boolean
+  + getEmail(): String
+  + setUsername(String): void
+}
+class UserEntity {
+  + UserEntity():
+  + UserEntity(Integer, String, String, String, Integer):
   - id: Integer
   - password: String
+  - email: String
+  - favoriteGenre: Integer
   - username: String
   # canEqual(Object): boolean
-  + equals(Object): boolean
+  + getEmail(): String
+  + getFavoriteGenre(): Integer
+  + setId(Integer): void
+  + setUsername(String): void
+  + setEmail(String): void
+  + setFavoriteGenre(Integer): void
   + hashCode(): int
-  + hashPassword(): User
+  + getId(): Integer
+  + getPassword(): String
   + toString(): String
-}
-class UserCredentials {
-  + UserCredentials():
-  + UserCredentials(String, String):
-  - password: String
-  - username: String
-  # canEqual(Object): boolean
+  + setPassword(String): void
+  + getUsername(): String
   + equals(Object): boolean
-  + hashCode(): int
-  + toString(): String
-  + toUser(): User
 }
 class UserHandler {
-  + UserHandler(UserService, AuthService):
-  # favorites(Context): void
-  # getProfile(Context): void
-  # login(Context): void
-  # ratings(Context): void
+  + UserHandler(UserService, AuthService, FavoriteService, RatingService):
+  - userService: UserService
+  - ratingService: RatingService
+  - authService: AuthService
+  - favoriteService: FavoriteService
   # recommendations(Context): void
+  # ratings(Context): void
+  # login(Context): void
   # register(Context): void
+  + getLeaderboard(Context): void
+  # getProfile(Context): void
+  # favorites(Context): void
   # updateProfile(Context): void
 }
-class UserProfileUpdate {
-  + UserProfileUpdate():
+class UserMapper {
+  + UserMapper(IMediaMapper, MediaRepository, RatingRepository, IRatingMapper, FavoriteRepository, FavoriteMapper):
+  - mediaRepository: MediaRepository
+  - mediaMapper: IMediaMapper
+  - ratingMapper: IRatingMapper
+  - favoriteMapper: FavoriteMapper
+  - ratingRepository: RatingRepository
+  - favoriteRepository: FavoriteRepository
+  + toEntity(User): UserEntity
+  + fromDTO(UserDTO): User
+  + fromEntity(UserEntity): User
+  + toDTO(User): UserDTO
+}
+class UserMapperTest {
+  + UserMapperTest():
+  - mediaRepository: MediaRepository
+  - ratingMapper: IRatingMapper
+  - mediaMapper: IMediaMapper
+  - ratingRepository: RatingRepository
+  - userMapper: UserMapper
+  ~ testToDTO(): void
+  ~ testToDTOWithFavorites(): void
+  ~ testToEntity(): void
+  ~ testFromEntity(): void
+  ~ setUp(): void
+  ~ testFromDTO(): void
 }
 class UserRepository {
-  + UserRepository():
-  - users: List<User>
-  + createUser(User): boolean
-  + getUserByName(String): User
-  + getUserbyId(int): User
-  + updateUser(User): boolean
+  + UserRepository(Orm<UserEntity>):
+  - userORM: Orm<UserEntity>
+  + update(int, UserEntity): UserEntity
+  + findAll(): List<UserEntity>
+  + findByUsername(String): UserEntity
+  + create(UserEntity): int
+  + delete(int): boolean
+  + findById(int): UserEntity
 }
 class UserService {
-  + UserService(UserRepository):
+  + UserService(UserRepository, UserMapper, RatingRepository, RatingMapper, FavoriteRepository, MediaRepository, MediaMapper):
+  - mediaMapper: MediaMapper
+  - mediaRepository: MediaRepository
+  - favoriteRepository: FavoriteRepository
+  - userRepository: UserRepository
+  - ratingMapper: RatingMapper
+  - userMapper: UserMapper
+  - ratingRepository: RatingRepository
+  + getUser(int): Response
+  + getRecommendations(int, String): Response
+  + updateUser(int, UserDTO): Response
+  + getLeaderBoard(): Response
 }
 
-AuthService     -->     UserRepository
-BaseHandler     -->     AuthService
-Context         -->     HttpMethod
-JsonConverter   --|>    BaseConverter
-Media           -->     MediaType
-MediaHandler    -->     AuthService
-MediaHandler    --|>    BaseHandler
-MediaHandler    -->     MediaService
-MediaRepository -->     Media
-MediaService    -->     MediaRepository
-Rating          -->     Media
-Rating          -->     User
-RatingHandler   --|>    BaseHandler
-Response        -->     ContentType
-Response        -->     HttpStatus
-Server          -->     MediaHandler
-Server          -->     RatingHandler
-Server          -->     UserHandler
-UserHandler     -->     AuthService
-UserHandler     --|>    BaseHandler
-UserHandler     -->     UserService
-UserRepository  -->     User
-UserService     -->     UserRepository
-MediaHandler    -->     Auth
-MediaHandler    -->     GET
-MediaHandler    -->     POST
-MediaHandler    -->     PUT
-MediaHandler    -->     DELETE
-UserHandler     -->     Auth
-UserHandler     -->     GET
-UserHandler     -->     POST
-UserHandler     -->     PUT
-RatingHandler   -->     Auth
-RatingHandler   -->     POST
-RatingHandler   -->     PUT
-RatingHandler   -->     DELETE
-UserHandler     -->     Response
-UserService     -->     Response
-MediaHandler    -->     Response
-MediaService    -->     Response
-RatingHandler   -->     Response
-RatingService   -->     Response
-RatingHandler   -->     RatingService
-RatingService   -->     RatingRepository
-RatingRepository-->     Rating
-Main            -->     Server
-MediaHandler    -->     JsonConverter
-MediaService    -->     JsonConverter
-UserHandler     -->     JsonConverter
-AuthService     -->     JsonConverter
-UserHandler     -->     UserCredentials
-UserHandler     -->     UserProfileUpdate
-AuthService     -->     UserCredentials
-MediaHandler    -->     Context
-UserHandler     -->     Context
-RatingHandler   -->     Context
-AuthService     -->     LoginResponse
+AuthService        --> IUserMapper
+AuthService        --> UserRepository
+BaseHandler        --> AuthService
+Context            --> HttpMethod
+Favorite           --> Media
+Favorite           --> User
+FavoriteEntity      --  Entity
+FavoriteMapper     --> IMediaMapper
+FavoriteMapper     --> IUserMapper
+FavoriteMapper     --> MediaRepository
+FavoriteMapper     --> UserRepository
+FavoriteMapperTest --> FavoriteMapper
+FavoriteMapperTest --> IMediaMapper
+FavoriteMapperTest --> IUserMapper
+FavoriteMapperTest --> MediaRepository
+FavoriteMapperTest --> UserRepository
+FavoriteRepository --> Orm
+FavoriteService    --> FavoriteMapper
+FavoriteService    --> FavoriteRepository
+FavoriteService    --> MediaRepository
+FavoriteService    --> UserRepository
+JsonConverter       --^  BaseConverter
+JsonConverterTest  --> JsonConverter
+Like               --> Rating
+Like               --> User
+LikeEntity          --  Entity
+LikeMapper         --> IUserMapper
+LikeMapper         --> RatingMapper
+LikeMapper         --> RatingRepository
+LikeMapper         --> UserRepository
+LikeMapperTest     --> IUserMapper
+LikeMapperTest     --> LikeMapper
+LikeMapperTest     --> RatingMapper
+LikeMapperTest     --> RatingRepository
+LikeMapperTest     --> UserRepository
+LikeRepository     --> Orm
+Media              --> Genre
+Media              --> MediaType
+Media              --> Rating
+Media              --> User
+MediaEntity         --  Entity
+MediaHandler       --> AuthService
+MediaHandler        --^  BaseHandler
+MediaHandler       --> FavoriteService
+MediaHandler       --> MediaService
+MediaHandler       --> RatingService
+MediaMapper         --^  IMediaMapper
+MediaMapper        --> IRatingMapper
+MediaMapper        --> IUserMapper
+MediaMapper        --> RatingRepository
+MediaMapper        --> UserRepository
+MediaMapperTest    --> IRatingMapper
+MediaMapperTest    --> IUserMapper
+MediaMapperTest    --> MediaMapper
+MediaMapperTest    --> RatingRepository
+MediaMapperTest    --> UserRepository
+MediaRepository    --> Orm
+MediaService       --> MediaMapper
+MediaService       --> MediaRepository
+Orm                --> DBConnector
+Orm                --> JsonConverter
+Rating             --> Media
+Rating             --> User
+RatingEntity        --  Entity
+RatingHandler      --> AuthService
+RatingHandler       --^  BaseHandler
+RatingHandler      --> RatingService
+RatingMapper       --> IMediaMapper
+RatingMapper        --^  IRatingMapper
+RatingMapper       --> IUserMapper
+RatingMapper       --> MediaRepository
+RatingMapper       --> UserRepository
+RatingMapperTest   --> IMediaMapper
+RatingMapperTest   --> IUserMapper
+RatingMapperTest   --> MediaRepository
+RatingMapperTest   --> RatingMapper
+RatingMapperTest   --> UserRepository
+RatingRepository   --> Orm
+RatingService      --> LikeMapper
+RatingService      --> LikeRepository
+RatingService      --> MediaMapper
+RatingService      --> MediaRepository
+RatingService      --> RatingMapper
+RatingService      --> RatingRepository
+RatingService      --> UserRepository
+Response           --> ContentType
+Response           --> HttpStatus
+Server             --> MediaHandler
+Server             --> RatingHandler
+Server             --> UserHandler
+User               --> Genre
+User               --> Media
+User               --> Rating
+UserDTO            --> MediaDTO
+UserEntity          --  Entity
+UserHandler        --> AuthService
+UserHandler         --^  BaseHandler
+UserHandler        --> FavoriteService
+UserHandler        --> RatingService
+UserHandler        --> UserService
+UserMapper         --> FavoriteMapper
+UserMapper         --> FavoriteRepository
+UserMapper         --> IMediaMapper
+UserMapper         --> IRatingMapper
+UserMapper          --^  IUserMapper
+UserMapper         --> MediaRepository
+UserMapper         --> RatingRepository
+UserMapperTest     --> IMediaMapper
+UserMapperTest     --> IRatingMapper
+UserMapperTest     --> MediaRepository
+UserMapperTest     --> RatingRepository
+UserMapperTest     --> UserMapper
+UserRepository     --> Orm
+UserService        --> FavoriteRepository
+UserService        --> MediaMapper
+UserService        --> MediaRepository
+UserService        --> RatingMapper
+UserService        --> RatingRepository
+UserService        --> UserMapper
+UserService        --> UserRepository
 @enduml

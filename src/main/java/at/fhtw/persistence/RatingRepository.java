@@ -26,11 +26,13 @@ public class RatingRepository {
     }
 
     public List<RatingEntity> findByMediaId(int mediaId) {
-        return ratingOrm.getByField("mediaId", mediaId);
+        List<RatingEntity> ratings = ratingOrm.getByField("mediaId", mediaId);
+        return ratings != null ? ratings : List.of();
     }
 
     public List<RatingEntity> findByUserId(int userId) {
-        return ratingOrm.getByField("userId", userId);
+        List<RatingEntity> ratings = ratingOrm.getByField("creatorId", userId);
+        return ratings != null ? ratings : List.of();
     }
 
     public int create(RatingEntity rating) {

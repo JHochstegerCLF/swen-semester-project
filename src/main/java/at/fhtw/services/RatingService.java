@@ -2,13 +2,11 @@ package at.fhtw.services;
 
 import at.fhtw.converter.JsonConverter;
 import at.fhtw.mapper.LikeMapper;
-import at.fhtw.mapper.MediaMapper;
 import at.fhtw.mapper.RatingMapper;
 import at.fhtw.models.dtos.LikeDTO;
 import at.fhtw.models.dtos.RatingDTO;
 import at.fhtw.models.entities.RatingEntity;
 import at.fhtw.persistence.LikeRepository;
-import at.fhtw.persistence.MediaRepository;
 import at.fhtw.persistence.RatingRepository;
 import at.fhtw.persistence.UserRepository;
 import at.fhtw.presentation.http.ContentType;
@@ -28,8 +26,6 @@ public class RatingService {
     private final LikeRepository likeRepository;
     private final LikeMapper likeMapper;
     private final UserRepository userRepository;
-    private final MediaRepository mediaRepository;
-    private final MediaMapper mediaMapper;
 
 
     public Response addRating(RatingDTO rating) {
@@ -64,6 +60,11 @@ public class RatingService {
                     "You are not the creator of this rating"
             );
         }
+        rating.setTimestamp(ratingEntity.getTimestamp());
+        rating.setMediaId(ratingEntity.getMediaId());
+        rating.setCreatorId(ratingEntity.getCreatorId());
+        rating.setConfirmed(ratingEntity.isConfirmed());
+
         if (ratingRepository.update(rating.getId(), ratingMapper.toEntity(ratingMapper.fromDTO(rating))) != null) {
             return new Response(
                     HttpStatus.OK,
@@ -94,6 +95,7 @@ public class RatingService {
                     "You are not the creator of this rating"
             );
         }
+        likeRepository.deleteByRatingId(ratingId);
         if (ratingRepository.delete(ratingId)) {
             return new Response(
                     HttpStatus.NO_CONTENT,

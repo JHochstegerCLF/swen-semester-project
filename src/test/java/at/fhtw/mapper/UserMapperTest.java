@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -43,9 +43,9 @@ public class UserMapperTest {
     @Test
     void testToDTO() {
         User user = new User(1, "testuser", "pass", "test@mail.com", Genre.ACTION_AND_ADVENTURE, Collections.emptyList(), Collections.emptyList());
-        
+
         UserDTO dto = userMapper.toDTO(user);
-        
+
         assertEquals(1, dto.getId());
         assertEquals("testuser", dto.getUsername());
         assertEquals("ACTION_AND_ADVENTURE", dto.getFavoriteGenre());
@@ -65,9 +65,9 @@ public class UserMapperTest {
     @Test
     void testToEntity() {
         User user = new User(1, "testuser", "pass", "test@mail.com", Genre.ACTION_AND_ADVENTURE, Collections.emptyList(), Collections.emptyList());
-        
+
         UserEntity entity = userMapper.toEntity(user);
-        
+
         assertEquals(1, entity.getId());
         assertEquals(Genre.ACTION_AND_ADVENTURE.ordinal(), entity.getFavoriteGenre());
     }
@@ -78,21 +78,21 @@ public class UserMapperTest {
         when(ratingRepository.findByUserId(1)).thenReturn(Collections.emptyList());
 
         User user = userMapper.fromEntity(entity);
-        
+
         assertEquals("testuser", user.getUsername());
         assertEquals(Genre.ACTION_AND_ADVENTURE, user.getFavoriteGenre());
     }
 
     @Test
     void testToDTOWithFavorites() {
-        Media media = new Media(); 
+        Media media = new Media();
         media.setId(10);
         User user = new User(1, "testuser", "pass", "test@mail.com", Genre.DRAMA, List.of(media), Collections.emptyList());
-        
+
         when(mediaMapper.toDTO(any(Media.class))).thenReturn(new MediaDTO());
 
         UserDTO dto = userMapper.toDTO(user);
-        
+
         assertEquals(1, dto.getFavorites().size());
     }
 }

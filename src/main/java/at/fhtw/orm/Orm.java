@@ -99,7 +99,7 @@ public class Orm<T> {
                 return result;
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return null;
         }
     }
 

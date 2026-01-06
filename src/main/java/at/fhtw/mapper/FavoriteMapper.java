@@ -10,21 +10,15 @@ import com.google.inject.Inject;
 public class FavoriteMapper {
     private final UserRepository userRepository;
     private final MediaRepository mediaRepository;
-    private final IUserMapper userMapper;
-    private final IMediaMapper mediaMapper;
 
 
     @Inject
     public FavoriteMapper(
             UserRepository userRepository,
-            MediaRepository mediaRepository,
-            IUserMapper userMapper,
-            IMediaMapper mediaMapper
+            MediaRepository mediaRepository
     ) {
         this.userRepository = userRepository;
         this.mediaRepository = mediaRepository;
-        this.userMapper = userMapper;
-        this.mediaMapper = mediaMapper;
     }
 
     public FavoriteDTO toDTO(Favorite favorite) {
@@ -36,10 +30,22 @@ public class FavoriteMapper {
     }
 
     public Favorite fromDTO(FavoriteDTO favoriteDTO) {
+        at.fhtw.models.entities.UserEntity userEntity = userRepository.findById(favoriteDTO.getUser());
+        at.fhtw.models.User user = null;
+        if (userEntity != null) {
+            user = new at.fhtw.models.User(userEntity.getId(), userEntity.getUsername(), userEntity.getPassword(), userEntity.getEmail(), userEntity.getFavoriteGenre() != null ? at.fhtw.models.enums.Genre.values()[userEntity.getFavoriteGenre()] : null, new java.util.ArrayList<>(), new java.util.ArrayList<>());
+        }
+
+        at.fhtw.models.entities.MediaEntity mediaEntity = mediaRepository.findById(favoriteDTO.getMedia());
+        at.fhtw.models.Media media = null;
+        if (mediaEntity != null) {
+            media = new at.fhtw.models.Media(mediaEntity.getId(), mediaEntity.getTitle(), mediaEntity.getDescription(), mediaEntity.getMediaType() != null ? at.fhtw.models.enums.MediaType.values()[mediaEntity.getMediaType()] : null, mediaEntity.getReleaseYear(), mediaEntity.getGenres() != null ? mediaEntity.getGenres().stream().map(g -> at.fhtw.models.enums.Genre.values()[g]).toList() : null, mediaEntity.getAgeRestriction(), null, 0.0, new java.util.ArrayList<>());
+        }
+
         return new Favorite(
                 favoriteDTO.getId(),
-                userMapper.fromEntity(userRepository.findById(favoriteDTO.getUser())),
-                mediaMapper.fromEntity(mediaRepository.findById(favoriteDTO.getMedia()))
+                user,
+                media
         );
     }
 
@@ -52,10 +58,22 @@ public class FavoriteMapper {
     }
 
     public Favorite fromEntity(FavoriteEntity favoriteEntity) {
+        at.fhtw.models.entities.UserEntity userEnt = userRepository.findById(favoriteEntity.getUser());
+        at.fhtw.models.User user = null;
+        if (userEnt != null) {
+            user = new at.fhtw.models.User(userEnt.getId(), userEnt.getUsername(), userEnt.getPassword(), userEnt.getEmail(), userEnt.getFavoriteGenre() != null ? at.fhtw.models.enums.Genre.values()[userEnt.getFavoriteGenre()] : null, new java.util.ArrayList<>(), new java.util.ArrayList<>());
+        }
+
+        at.fhtw.models.entities.MediaEntity medEnt = mediaRepository.findById(favoriteEntity.getMedia());
+        at.fhtw.models.Media media = null;
+        if (medEnt != null) {
+            media = new at.fhtw.models.Media(medEnt.getId(), medEnt.getTitle(), medEnt.getDescription(), medEnt.getMediaType() != null ? at.fhtw.models.enums.MediaType.values()[medEnt.getMediaType()] : null, medEnt.getReleaseYear(), medEnt.getGenres() != null ? medEnt.getGenres().stream().map(g -> at.fhtw.models.enums.Genre.values()[g]).toList() : null, medEnt.getAgeRestriction(), null, 0.0, new java.util.ArrayList<>());
+        }
+
         return new Favorite(
                 favoriteEntity.getId(),
-                userMapper.fromEntity(userRepository.findById(favoriteEntity.getUser())),
-                mediaMapper.fromEntity(mediaRepository.findById(favoriteEntity.getMedia()))
+                user,
+                media
         );
     }
 }

@@ -28,4 +28,15 @@ public class LikeRepository {
     public int create(LikeEntity likeEntity) {
         return likeORM.persistEntity(likeEntity);
     }
+
+    public boolean delete(int id) {
+        return likeORM.delete(id);
+    }
+
+    public void deleteByRatingId(int ratingId) {
+        List<LikeEntity> likes = findByRatingId(ratingId);
+        if (likes != null) {
+            likes.forEach(l -> delete(l.getId()));
+        }
+    }
 }

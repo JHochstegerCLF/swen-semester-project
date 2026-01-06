@@ -44,10 +44,15 @@ public class MediaHandler extends BaseHandler {
     @Auth
     @POST(path = "/")
     protected void addMedia(Context context) {
-        JsonConverter<MediaDTO> jsonConverter = new JsonConverter<>(MediaDTO.class);
-        MediaDTO media = jsonConverter.deserialize(context.getBody());
-        media.setCreatorId(authService.getUserByToken(context.getToken()).getId());
-        mediaService.addMedia(media).send(context.getHttpExchange());
+        try {
+            JsonConverter<MediaDTO> jsonConverter = new JsonConverter<>(MediaDTO.class);
+            MediaDTO media = jsonConverter.deserialize(context.getBody());
+            media.setCreatorId(authService.getUserByToken(context.getToken()).getId());
+            mediaService.addMedia(media).send(context.getHttpExchange());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Auth

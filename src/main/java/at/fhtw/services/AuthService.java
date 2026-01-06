@@ -47,7 +47,11 @@ public class AuthService {
                 "Login failed"
         );
         User user = userCredentialsDTO.toUser().hashPassword();
-        User savedUser = userMapper.fromEntity(userRepository.findByUsername(user.getUsername()));
+        at.fhtw.models.entities.UserEntity savedUserEntity = userRepository.findByUsername(user.getUsername());
+        if (savedUserEntity == null) {
+            return error;
+        }
+        User savedUser = userMapper.fromEntity(savedUserEntity);
         // checks if user exists
         if (savedUser == null) {
             return error;
@@ -73,7 +77,7 @@ public class AuthService {
                 // sign the token with secret so only the server can verify and create it
                 .sign(algorithm);
         JsonConverter<LoginResponse> jsonConverter = new JsonConverter<>(LoginResponse.class);
-        LoginResponse loginResponse = new LoginResponse(token);
+        LoginResponse loginResponse = new LoginResponse(savedUser.getId(), token);
         return new Response(
                 HttpStatus.OK,
                 ContentType.JSON,

@@ -7,10 +7,7 @@ import at.fhtw.presentation.annotations.Auth;
 import at.fhtw.presentation.annotations.GET;
 import at.fhtw.presentation.annotations.POST;
 import at.fhtw.presentation.annotations.PUT;
-import at.fhtw.presentation.http.ContentType;
-import at.fhtw.presentation.http.HttpStatus;
 import at.fhtw.presentation.models.Context;
-import at.fhtw.presentation.models.Response;
 import at.fhtw.services.AuthService;
 import at.fhtw.services.FavoriteService;
 import at.fhtw.services.RatingService;
@@ -72,12 +69,9 @@ public class UserHandler extends BaseHandler {
     @Auth
     @GET(path = "/{userId}/recommendations")
     protected void recommendations(Context context) {
-        System.out.println("Recommendations");
-        new Response(
-                HttpStatus.NOT_IMPLEMENTED,
-                ContentType.PLAIN_TEXT,
-                "Not implemented"
-        ).send(context.getHttpExchange());
+        int userId = Integer.parseInt(context.getPathParams().get("userId"));
+        String type = context.getQueryParams().get("type");
+        userService.getRecommendations(userId, type).send(context.getHttpExchange());
     }
 
     public void getLeaderboard(Context context) {

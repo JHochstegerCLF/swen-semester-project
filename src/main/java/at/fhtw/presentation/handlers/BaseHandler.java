@@ -87,8 +87,22 @@ public class BaseHandler implements HttpHandler {
             // invoke method
             try {
                 method.invoke(this, context);
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                e.getCause().printStackTrace();
+                String msg = e.getCause().getMessage();
+                new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        ContentType.PLAIN_TEXT,
+                        msg != null ? msg : "Internal Server Error"
+                ).send(httpExchange);
+            } catch (Exception e) {
+                e.printStackTrace();
+                String msg = e.getMessage();
+                new Response(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        ContentType.PLAIN_TEXT,
+                        msg != null ? msg : "Internal Server Error"
+                ).send(httpExchange);
             }
         } else {
             System.out.println(getMethod(httpExchange).name() + ": " + httpExchange.getRequestURI().getPath() + " -> Not found");

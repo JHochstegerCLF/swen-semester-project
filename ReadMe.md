@@ -4,13 +4,15 @@ Link to [Github](https://github.com/JHochstegerCLF/n-semester-project)
 
 ## Structure
 
-The Files are separated into 5 overaching folders:
+The Files are separated into 7 overaching folders:
 
 * Presentation (API definition and Routing Logic)
 * Service (Logic of the application -> verification, conversion, filtering)
 * Persistence (Concerned with saving of Data -> currently just a List but later DB)
 * Models (All Data-objects and Enums)
 * Converter (Services to serialize/deserialize)
+* Mapper (Services to convert between DTO and Entity)
+* Orm (A Service for dynamic SQL queries to not hardcode queries)
 
 ### Presentation
 
@@ -46,12 +48,33 @@ in the Service layer.
 
 ### Models
 
-The Models Folder contains all data objects that are shared between layers. Some data objects are only used in one layer
-so they are located there (e.g Context and Response are located in presenation layer)
+The Models Folder contains all data objects that are shared between layers. The data
 
 ### Converter
 
 The Converter currently only holds one Mapper for Json but could be expanded to allow for mapping to XML and others.
+
+### Mapper
+
+The Mapper map between different versions of the data objects.
+DTOs (Data Transfer Objects) used for serialization for the API.
+Entities used for storage in the Database.
+Normal Classes used for Services.
+This is not really necessary it is just a feature of convenience i implemented so i can separate the different
+operations and have convenient features like direct access to objects they are related to directly in the object.
+Without having to worry about problems with storing in the database and sending the object as json to the client.
+
+### ORM
+
+The OR-Mapper was also a feature of convenience i implemented so i dont have to write each query by hand and can focus
+on the business logic.
+The ORM is written with reusability in mind so i can use the same ORM for all my Entities the only requirement is that
+the class is annotated as @Entity.
+This is used in a check by the ORM class to make sure the ORM with the specific class is allowed to be created. I also
+added an @key annotation and a @Param annotation to mark the primary key for each table and to set a different name for
+the fields that might have special names in the database.
+Using the ORM allows me to simply create a new entity and be able to access the table related to it without writing a
+bunch of boilerplate code.
 
 ## Decisions
 
@@ -70,6 +93,9 @@ for the Repositories due to the fact that they currently use a List saved in the
 
 With these design decisions the process of implementing different endpoints is very simple since you don't have to think
 about Passing instances of services and a giant switch case for the different endpoints is also not needed.
+
+Since i am also familiar with using ORM and the benefits i wanted to recreate the benefits in my own implementation.
+This would spare me from writing all the boilerplate code associated with Database usage.
 
 ## Problems
 
@@ -91,6 +117,11 @@ same throughout the application.
 To fix this I needed to mark the Repositories with the @Singleton Annotation to tell Guice that the Instance of this
 Class should always be the same.
 
+Another issue i needed to solve was was how to dynamically create sql calls for the Classes. I found out that Postgres
+Supports json in its requests.
+This allowed me to use the JsonConverter to send and receive data to and from the database without having to write logic
+for assembling giant sql calls.
+
 ## Time tracking
 
 ### Structuring Files
@@ -109,13 +140,14 @@ approx. 4 hours
 
 approx. 2 hours
 
+### ORM
+
+approx. 2 Days
+
 ## Testing
 
-For testing I've provided 2 possible ways:
-
-* curl-script: A simple Curl script (integrationTests.sh) that shows the registration, login and CRUD operations. The
-  script was written on linux, so testing on Windows maybe in WSL
-* Intellij http script: If the Curl script shouldn't work the http script from Intellij performs the same actions.
+For testing I've provided a Curl script (integrationTests.sh) that shows all the endpoints work. The
+script was written on linux, so for testing on Windows maybe use WSL
 
 ## Class Diagram
 

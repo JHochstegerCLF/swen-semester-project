@@ -4,6 +4,7 @@ import at.fhtw.converter.JsonConverter;
 import at.fhtw.mapper.MediaMapper;
 import at.fhtw.models.Media;
 import at.fhtw.models.dtos.MediaDTO;
+import at.fhtw.models.entities.MediaEntity;
 import at.fhtw.persistence.MediaRepository;
 import at.fhtw.presentation.http.ContentType;
 import at.fhtw.presentation.http.HttpStatus;
@@ -23,14 +24,14 @@ public class MediaService {
 
 
     public Response addMedia(MediaDTO media) {
-        if (mediaRepository.create(mediaMapper.toEntity(mediaMapper.fromDTO(media))) != -1) {
+        int newId = mediaRepository.create(mediaMapper.toEntity(mediaMapper.fromDTO(media)));
+        if (newId != -1) {
             return new Response(
                     HttpStatus.OK,
-                    ContentType.PLAIN_TEXT,
-                    "Media created"
+                    ContentType.JSON,
+                    "{ \"id\": " + newId + " }"
             );
         }
-        ;
         return new Response(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ContentType.PLAIN_TEXT,
@@ -56,12 +57,16 @@ public class MediaService {
     }
 
     public Response updateMedia(MediaDTO media) {
-        if (mediaRepository.findById(media.getId()) == null) {
+        MediaEntity existingEntity = mediaRepository.findById(media.getId());
+        if (existingEntity == null) {
             return new Response(
                     HttpStatus.NOT_FOUND,
                     ContentType.PLAIN_TEXT,
                     "Media not found"
             );
+        }
+        if (media.getCreatorId() == 0) {
+            media.setCreatorId(existingEntity.getCreatorId());
         }
         if (mediaRepository.update(media.getId(), mediaMapper.toEntity(mediaMapper.fromDTO(media))) != null) {
             return new Response(
@@ -105,7 +110,14 @@ public class MediaService {
             mediaStream = mediaStream.filter(m -> m.getTitle().toLowerCase().contains(filter.get("title").toLowerCase()));
         }
         if (filter.containsKey("genre")) {
-            mediaStream = mediaStream.filter(m -> m.getGenres().stream().anyMatch(g -> Integer.parseInt(filter.get("genre")) == g.ordinal()));
+            String genreFilter = filter.get("genre");
+            mediaStream = mediaStream.filter(m -> m.getGenres().stream().anyMatch(g -> {
+                try {
+                    return Integer.parseInt(genreFilter) == g.ordinal();
+                } catch (NumberFormatException e) {
+                    return g.name().equalsIgnoreCase(genreFilter);
+                }
+            }));
         }
         if (filter.containsKey("mediaType")) {
             mediaStream = mediaStream.filter(m -> m.getMediaType().toString().toLowerCase().contains(filter.get("mediaType").toLowerCase()));

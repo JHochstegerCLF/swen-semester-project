@@ -18,11 +18,13 @@ public class FavoriteRepository {
     }
 
     public List<FavoriteEntity> findByUserId(int userId) {
-        return favoriteORM.getByField("user", userId);
+        List<FavoriteEntity> favorites = favoriteORM.getByField("user", userId);
+        return favorites != null ? favorites : List.of();
     }
 
     public List<FavoriteEntity> findByMediaId(int mediaId) {
-        return favoriteORM.getByField("media", mediaId);
+        List<FavoriteEntity> favorites = favoriteORM.getByField("media", mediaId);
+        return favorites != null ? favorites : List.of();
     }
 
     public int create(FavoriteEntity favoriteEntity) {

@@ -15,7 +15,6 @@ import com.google.inject.Singleton;
 public class MediaMapper implements IMediaMapper {
     private final UserRepository userRepository;
     private final RatingRepository ratingRepository;
-    private final IUserMapper userMapper;
     private final IRatingMapper ratingMapper;
 
 
@@ -23,12 +22,10 @@ public class MediaMapper implements IMediaMapper {
     public MediaMapper(
             UserRepository userRepository,
             RatingRepository ratingRepository,
-            IUserMapper userMapper,
             IRatingMapper ratingMapper
     ) {
         this.userRepository = userRepository;
         this.ratingRepository = ratingRepository;
-        this.userMapper = userMapper;
         this.ratingMapper = ratingMapper;
     }
 
@@ -37,25 +34,39 @@ public class MediaMapper implements IMediaMapper {
                 media.getId(),
                 media.getTitle(),
                 media.getDescription(),
-                media.getMediaType().toString(),
+                media.getMediaType() != null ? media.getMediaType().toString() : null,
                 media.getReleaseYear(),
-                media.getGenres().stream().map(String::valueOf).toList(),
+                media.getGenres() != null ? media.getGenres().stream().map(String::valueOf).toList() : null,
                 media.getAgeRestriction(),
-                media.getCreator().getId(),
+                media.getCreator() != null ? media.getCreator().getId() : 0,
                 media.getRating()
         );
     }
 
     public Media fromDTO(MediaDTO mediaDTO) {
+        at.fhtw.models.entities.UserEntity creatorEntity = userRepository.findById(mediaDTO.getCreatorId());
+        at.fhtw.models.User creator = null;
+        if (creatorEntity != null) {
+            creator = new at.fhtw.models.User(
+                    creatorEntity.getId(),
+                    creatorEntity.getUsername(),
+                    creatorEntity.getPassword(),
+                    creatorEntity.getEmail(),
+                    creatorEntity.getFavoriteGenre() != null ? Genre.values()[creatorEntity.getFavoriteGenre()] : null,
+                    new java.util.ArrayList<>(),
+                    new java.util.ArrayList<>()
+            );
+        }
+
         return new Media(
                 mediaDTO.getId(),
                 mediaDTO.getTitle(),
                 mediaDTO.getDescription(),
-                MediaType.valueOf(mediaDTO.getMediaType()),
+                mediaDTO.getMediaType() != null ? MediaType.valueOf(mediaDTO.getMediaType().toUpperCase()) : null,
                 mediaDTO.getReleaseYear(),
-                mediaDTO.getGenres().stream().map(Genre::valueOf).toList(),
+                mediaDTO.getGenres() != null ? mediaDTO.getGenres().stream().map(Genre::valueOf).toList() : null,
                 mediaDTO.getAgeRestriction(),
-                userMapper.fromEntity(userRepository.findById(mediaDTO.getCreatorId())),
+                creator,
                 ratingRepository.findByMediaId(mediaDTO.getId()).stream().mapToInt(RatingEntity::getRating).average().orElse(0),
                 ratingRepository.findByMediaId(mediaDTO.getId()).stream().map(ratingMapper::fromEntity).toList()
         );
@@ -66,24 +77,38 @@ public class MediaMapper implements IMediaMapper {
                 media.getId(),
                 media.getTitle(),
                 media.getDescription(),
-                media.getMediaType().ordinal(),
+                media.getMediaType() != null ? media.getMediaType().ordinal() : null,
                 media.getReleaseYear(),
-                media.getGenres().stream().map(Genre::ordinal).toList(),
+                media.getGenres() != null ? media.getGenres().stream().map(Genre::ordinal).toList() : null,
                 media.getAgeRestriction(),
-                media.getCreator().getId()
+                media.getCreator() != null ? media.getCreator().getId() : 0
         );
     }
 
     public Media fromEntity(MediaEntity mediaEntity) {
+        at.fhtw.models.entities.UserEntity creatorEntity = userRepository.findById(mediaEntity.getCreatorId());
+        at.fhtw.models.User creator = null;
+        if (creatorEntity != null) {
+            creator = new at.fhtw.models.User(
+                    creatorEntity.getId(),
+                    creatorEntity.getUsername(),
+                    creatorEntity.getPassword(),
+                    creatorEntity.getEmail(),
+                    creatorEntity.getFavoriteGenre() != null ? Genre.values()[creatorEntity.getFavoriteGenre()] : null,
+                    new java.util.ArrayList<>(),
+                    new java.util.ArrayList<>()
+            );
+        }
+
         return new Media(
                 mediaEntity.getId(),
                 mediaEntity.getTitle(),
                 mediaEntity.getDescription(),
-                MediaType.values()[mediaEntity.getMediaType()],
+                mediaEntity.getMediaType() != null ? MediaType.values()[mediaEntity.getMediaType()] : null,
                 mediaEntity.getReleaseYear(),
-                mediaEntity.getGenres().stream().map(g -> Genre.values()[g]).toList(),
+                mediaEntity.getGenres() != null ? mediaEntity.getGenres().stream().map(g -> Genre.values()[g]).toList() : null,
                 mediaEntity.getAgeRestriction(),
-                userMapper.fromEntity(userRepository.findById(mediaEntity.getCreatorId())),
+                creator,
                 ratingRepository.findByMediaId(mediaEntity.getId()).stream().mapToInt(RatingEntity::getRating).average().orElse(0),
                 ratingRepository.findByMediaId(mediaEntity.getId()).stream().map(ratingMapper::fromEntity).toList()
         );

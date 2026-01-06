@@ -17,8 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -97,9 +97,9 @@ public class MediaMapperTest {
         User creator = new User();
         creator.setId(1);
         Media media = new Media(1, "G", "D", MediaType.GAME, 2000, List.of(Genre.HORROR, Genre.COMEDY), 0, creator, 5.0, Collections.emptyList());
-        
+
         MediaDTO dto = mediaMapper.toDTO(media);
-        
+
         assertTrue(dto.getGenres().contains("HORROR"));
         assertTrue(dto.getGenres().contains("COMEDY"));
     }

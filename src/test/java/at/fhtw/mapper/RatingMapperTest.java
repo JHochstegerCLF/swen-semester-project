@@ -5,13 +5,13 @@ import at.fhtw.models.Rating;
 import at.fhtw.models.User;
 import at.fhtw.models.dtos.RatingDTO;
 import at.fhtw.models.entities.RatingEntity;
+import at.fhtw.persistence.MediaRepository;
+import at.fhtw.persistence.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import at.fhtw.persistence.UserRepository;
-import at.fhtw.persistence.MediaRepository;
 
 import java.time.LocalDateTime;
 
@@ -40,8 +40,10 @@ public class RatingMapperTest {
 
     @Test
     void testToDTO() {
-        User creator = new User(); creator.setId(1);
-        Media media = new Media(); media.setId(2);
+        User creator = new User();
+        creator.setId(1);
+        Media media = new Media();
+        media.setId(2);
         LocalDateTime now = LocalDateTime.now();
         Rating rating = new Rating(10, creator, media, 5, "Good", now, true);
 
@@ -57,8 +59,10 @@ public class RatingMapperTest {
 
     @Test
     void testToEntity() {
-        User creator = new User(); creator.setId(1);
-        Media media = new Media(); media.setId(2);
+        User creator = new User();
+        creator.setId(1);
+        Media media = new Media();
+        media.setId(2);
         LocalDateTime now = LocalDateTime.now();
         Rating rating = new Rating(10, creator, media, 5, "Good", now, true);
 
@@ -74,8 +78,10 @@ public class RatingMapperTest {
     void testFromDTO() {
         LocalDateTime now = LocalDateTime.now();
         RatingDTO dto = new RatingDTO(10, 1, 2, 5, "Good", now, true);
-        User creator = new User(); creator.setId(1);
-        Media media = new Media(); media.setId(2);
+        User creator = new User();
+        creator.setId(1);
+        Media media = new Media();
+        media.setId(2);
 
         when(userRepository.findById(1)).thenReturn(null);
         when(mediaRepository.findById(2)).thenReturn(null);
@@ -93,8 +99,10 @@ public class RatingMapperTest {
     void testFromEntity() {
         LocalDateTime now = LocalDateTime.now();
         RatingEntity entity = new RatingEntity(10, 1, 2, 5, "Good", now, true);
-        User creator = new User(); creator.setId(1);
-        Media media = new Media(); media.setId(2);
+        User creator = new User();
+        creator.setId(1);
+        Media media = new Media();
+        media.setId(2);
 
         when(userRepository.findById(1)).thenReturn(null);
         when(mediaRepository.findById(2)).thenReturn(null);

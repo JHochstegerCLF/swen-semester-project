@@ -37,8 +37,10 @@ public class LikeMapperTest {
 
     @Test
     void testToDTO() {
-        User user = new User(); user.setId(1);
-        Rating rating = new Rating(); rating.setId(100);
+        User user = new User();
+        user.setId(1);
+        Rating rating = new Rating();
+        rating.setId(100);
         Like like = new Like(5, user, rating);
 
         LikeDTO dto = likeMapper.toDTO(like);
@@ -50,8 +52,10 @@ public class LikeMapperTest {
 
     @Test
     void testToEntity() {
-        User user = new User(); user.setId(1);
-        Rating rating = new Rating(); rating.setId(100);
+        User user = new User();
+        user.setId(1);
+        Rating rating = new Rating();
+        rating.setId(100);
         Like like = new Like(5, user, rating);
 
         LikeEntity entity = likeMapper.toEntity(like);
@@ -64,8 +68,10 @@ public class LikeMapperTest {
     @Test
     void testFromDTO() {
         LikeDTO dto = new LikeDTO(5, 1, 100);
-        User user = new User(); user.setId(1);
-        Rating rating = new Rating(); rating.setId(100);
+        User user = new User();
+        user.setId(1);
+        Rating rating = new Rating();
+        rating.setId(100);
 
         when(userRepository.findById(1)).thenReturn(null);
         when(ratingRepository.findById(100)).thenReturn(null);
@@ -82,8 +88,10 @@ public class LikeMapperTest {
     @Test
     void testFromEntity() {
         LikeEntity entity = new LikeEntity(5, 1, 100);
-        User user = new User(); user.setId(1);
-        Rating rating = new Rating(); rating.setId(100);
+        User user = new User();
+        user.setId(1);
+        Rating rating = new Rating();
+        rating.setId(100);
 
         when(userRepository.findById(1)).thenReturn(null);
         when(ratingRepository.findById(100)).thenReturn(null);

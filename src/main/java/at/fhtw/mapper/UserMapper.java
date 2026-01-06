@@ -1,32 +1,35 @@
 package at.fhtw.mapper;
 
-import at.fhtw.models.Media;
+import at.fhtw.models.Favorite;
 import at.fhtw.models.User;
 import at.fhtw.models.dtos.UserDTO;
 import at.fhtw.models.entities.UserEntity;
 import at.fhtw.models.enums.Genre;
-import at.fhtw.persistence.MediaRepository;
+import at.fhtw.persistence.FavoriteRepository;
 import at.fhtw.persistence.RatingRepository;
 import com.google.inject.Inject;
 
 public class UserMapper implements IUserMapper {
-    private final MediaRepository mediaRepository;
     private final IMediaMapper mediaMapper;
     private final RatingRepository ratingRepository;
     private final IRatingMapper ratingMapper;
+    private final FavoriteRepository favoriteRepository;
+    private final FavoriteMapper favoriteMapper;
 
 
     @Inject
     public UserMapper(
             IMediaMapper mediaMapper,
-            MediaRepository mediaRepository,
             RatingRepository ratingRepository,
-            IRatingMapper ratingMapper
+            IRatingMapper ratingMapper,
+            FavoriteRepository favoriteRepository,
+            FavoriteMapper favoriteMapper
     ) {
         this.mediaMapper = mediaMapper;
-        this.mediaRepository = mediaRepository;
         this.ratingRepository = ratingRepository;
         this.ratingMapper = ratingMapper;
+        this.favoriteRepository = favoriteRepository;
+        this.favoriteMapper = favoriteMapper;
     }
 
     public UserDTO toDTO(User user) {
@@ -35,7 +38,7 @@ public class UserMapper implements IUserMapper {
                 user.getUsername(),
                 user.getPassword(),
                 user.getEmail(),
-                user.getFavoriteGenre().toString(),
+                user.getFavoriteGenre() != null ? user.getFavoriteGenre().toString() : null,
                 user.getFavorites().stream().map(mediaMapper::toDTO).toList()
         );
     }
@@ -45,28 +48,30 @@ public class UserMapper implements IUserMapper {
                 userDTO.getUsername(),
                 userDTO.getPassword(),
                 userDTO.getEmail(),
-                Genre.valueOf(userDTO.getFavoriteGenre()),
-                userDTO.getFavorites().stream().map(mediaMapper::fromDTO).toList(),
+                userDTO.getFavoriteGenre() != null ? Genre.valueOf(userDTO.getFavoriteGenre()) : null,
+                userDTO.getFavorites() != null ? userDTO.getFavorites().stream().map(mediaMapper::fromDTO).toList() : new java.util.ArrayList<>(),
                 ratingRepository.findByUserId(userDTO.getId()).stream().map(ratingMapper::fromEntity).toList()
         );
     }
 
     public UserEntity toEntity(User user) {
-        return new UserEntity(user.getId(),
+        return new UserEntity(
+                user.getId(),
                 user.getUsername(),
                 user.getPassword(),
                 user.getEmail(),
-                user.getFavoriteGenre().ordinal(),
-                user.getFavorites().stream().map(Media::getId).toList());
+                user.getFavoriteGenre() != null ? user.getFavoriteGenre().ordinal() : null
+        );
     }
 
     public User fromEntity(UserEntity userEntity) {
-        return new User(userEntity.getId(),
+        return new User(
+                userEntity.getId(),
                 userEntity.getUsername(),
                 userEntity.getPassword(),
                 userEntity.getEmail(),
-                Genre.values()[userEntity.getFavoriteGenre()],
-                userEntity.getFavorites().stream().map(mediaRepository::findById).map(mediaMapper::fromEntity).toList(),
+                userEntity.getFavoriteGenre() != null ? Genre.values()[userEntity.getFavoriteGenre()] : null,
+                favoriteRepository.findByUserId(userEntity.getId()).stream().map(favoriteMapper::fromEntity).map(Favorite::getMedia).toList(),
                 ratingRepository.findByUserId(userEntity.getId()).stream().map(ratingMapper::fromEntity).toList()
         );
     }

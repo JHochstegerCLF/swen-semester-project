@@ -37,8 +37,10 @@ public class FavoriteMapperTest {
 
     @Test
     void testToDTO() {
-        User user = new User(); user.setId(1);
-        Media media = new Media(); media.setId(2);
+        User user = new User();
+        user.setId(1);
+        Media media = new Media();
+        media.setId(2);
         Favorite favorite = new Favorite(10, user, media);
 
         FavoriteDTO dto = favoriteMapper.toDTO(favorite);
@@ -50,8 +52,10 @@ public class FavoriteMapperTest {
 
     @Test
     void testToEntity() {
-        User user = new User(); user.setId(1);
-        Media media = new Media(); media.setId(2);
+        User user = new User();
+        user.setId(1);
+        Media media = new Media();
+        media.setId(2);
         Favorite favorite = new Favorite(10, user, media);
 
         FavoriteEntity entity = favoriteMapper.toEntity(favorite);
@@ -64,8 +68,10 @@ public class FavoriteMapperTest {
     @Test
     void testFromDTO() {
         FavoriteDTO dto = new FavoriteDTO(10, 1, 2);
-        User user = new User(); user.setId(1);
-        Media media = new Media(); media.setId(2);
+        User user = new User();
+        user.setId(1);
+        Media media = new Media();
+        media.setId(2);
 
         when(userRepository.findById(1)).thenReturn(null);
         when(mediaRepository.findById(2)).thenReturn(null);
@@ -82,8 +88,10 @@ public class FavoriteMapperTest {
     @Test
     void testFromEntity() {
         FavoriteEntity entity = new FavoriteEntity(10, 1, 2);
-        User user = new User(); user.setId(1);
-        Media media = new Media(); media.setId(2);
+        User user = new User();
+        user.setId(1);
+        Media media = new Media();
+        media.setId(2);
 
         when(userRepository.findById(1)).thenReturn(null);
         when(mediaRepository.findById(2)).thenReturn(null);
