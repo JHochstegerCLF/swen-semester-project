@@ -1,6 +1,6 @@
 package at.fhtw.models.dtos;
 
-import at.fhtw.orm.Param;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +14,9 @@ public class RatingDTO {
     private int id;
     private int creatorId;
     private int mediaId;
+    @JsonProperty("stars")
     private int rating;
     private String comment;
     private LocalDateTime timestamp;
+    private boolean confirmed;
 }

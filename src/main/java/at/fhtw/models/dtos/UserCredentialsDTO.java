@@ -5,14 +5,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserCredentials {
+public class UserCredentialsDTO {
     private String username;
     private String password;
 
     public User toUser() {
-        return new User(null, username, password, null, null);
+        return new User(null, username, password, null, null, new ArrayList<>(), null);
     }
 }

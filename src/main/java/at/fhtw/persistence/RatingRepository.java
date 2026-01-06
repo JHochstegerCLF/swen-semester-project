@@ -29,6 +29,10 @@ public class RatingRepository {
         return ratingOrm.getByField("mediaId", mediaId);
     }
 
+    public List<RatingEntity> findByUserId(int userId) {
+        return ratingOrm.getByField("userId", userId);
+    }
+
     public int create(RatingEntity rating) {
         return ratingOrm.persistEntity(rating);
     }

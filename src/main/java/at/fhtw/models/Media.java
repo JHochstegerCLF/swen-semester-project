@@ -20,7 +20,8 @@ public class Media {
     private List<Genre> genres;
     private int ageRestriction;
     private User creator;
-    private int rating = 0;
+    private double rating = 0;
+    private List<Rating> ratings;
 
     public void update(Media media) {
         this.title = media.getTitle();
@@ -31,5 +32,6 @@ public class Media {
         this.ageRestriction = media.getAgeRestriction();
         this.creator = media.getCreator();
         this.rating = media.getRating();
+        this.ratings = media.getRatings();
     }
 }

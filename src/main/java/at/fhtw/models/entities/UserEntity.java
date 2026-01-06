@@ -1,11 +1,12 @@
 package at.fhtw.models.entities;
 
-import at.fhtw.models.enums.Genre;
 import at.fhtw.orm.Entity;
 import at.fhtw.orm.Key;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,4 +19,5 @@ public class UserEntity {
     private String password;
     private String email;
     private Integer favoriteGenre;
+    private List<Integer> favorites;
 }

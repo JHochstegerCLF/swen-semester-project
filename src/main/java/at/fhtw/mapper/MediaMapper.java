@@ -8,23 +8,28 @@ import at.fhtw.models.enums.Genre;
 import at.fhtw.models.enums.MediaType;
 import at.fhtw.persistence.RatingRepository;
 import at.fhtw.persistence.UserRepository;
-import jakarta.inject.Inject;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
-public class MediaMapper {
+@Singleton
+public class MediaMapper implements IMediaMapper {
     private final UserRepository userRepository;
     private final RatingRepository ratingRepository;
-    private final UserMapper userMapper;
+    private final IUserMapper userMapper;
+    private final IRatingMapper ratingMapper;
 
 
     @Inject
     public MediaMapper(
             UserRepository userRepository,
             RatingRepository ratingRepository,
-            UserMapper userMapper
+            IUserMapper userMapper,
+            IRatingMapper ratingMapper
     ) {
         this.userRepository = userRepository;
         this.ratingRepository = ratingRepository;
         this.userMapper = userMapper;
+        this.ratingMapper = ratingMapper;
     }
 
     public MediaDTO toDTO(Media media) {
@@ -36,7 +41,8 @@ public class MediaMapper {
                 media.getReleaseYear(),
                 media.getGenres().stream().map(String::valueOf).toList(),
                 media.getAgeRestriction(),
-                media.getCreator().getId()
+                media.getCreator().getId(),
+                media.getRating()
         );
     }
 
@@ -50,7 +56,8 @@ public class MediaMapper {
                 mediaDTO.getGenres().stream().map(Genre::valueOf).toList(),
                 mediaDTO.getAgeRestriction(),
                 userMapper.fromEntity(userRepository.findById(mediaDTO.getCreatorId())),
-                (int) ratingRepository.findByMediaId(mediaDTO.getId()).stream().mapToInt(RatingEntity::getRating).average().orElse(0)
+                ratingRepository.findByMediaId(mediaDTO.getId()).stream().mapToInt(RatingEntity::getRating).average().orElse(0),
+                ratingRepository.findByMediaId(mediaDTO.getId()).stream().map(ratingMapper::fromEntity).toList()
         );
     }
 
@@ -77,7 +84,8 @@ public class MediaMapper {
                 mediaEntity.getGenres().stream().map(g -> Genre.values()[g]).toList(),
                 mediaEntity.getAgeRestriction(),
                 userMapper.fromEntity(userRepository.findById(mediaEntity.getCreatorId())),
-                (int) ratingRepository.findByMediaId(mediaEntity.getId()).stream().mapToInt(RatingEntity::getRating).average().orElse(0)
+                ratingRepository.findByMediaId(mediaEntity.getId()).stream().mapToInt(RatingEntity::getRating).average().orElse(0),
+                ratingRepository.findByMediaId(mediaEntity.getId()).stream().map(ratingMapper::fromEntity).toList()
         );
     }
 }

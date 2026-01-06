@@ -1,9 +1,9 @@
 package at.fhtw.services;
 
 import at.fhtw.converter.JsonConverter;
-import at.fhtw.mapper.UserMapper;
+import at.fhtw.mapper.IUserMapper;
 import at.fhtw.models.User;
-import at.fhtw.models.dtos.UserCredentials;
+import at.fhtw.models.dtos.UserCredentialsDTO;
 import at.fhtw.persistence.UserRepository;
 import at.fhtw.presentation.http.ContentType;
 import at.fhtw.presentation.http.HttpStatus;
@@ -20,7 +20,7 @@ import java.util.UUID;
 
 public class AuthService {
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
+    private final IUserMapper userMapper;
     private final Algorithm algorithm;
     private final JWTVerifier verifier;
     private final String issuer = "MRP";
@@ -29,7 +29,7 @@ public class AuthService {
     @Inject
     public AuthService(
             UserRepository userRepository,
-            UserMapper userMapper
+            IUserMapper userMapper
     ) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
@@ -39,14 +39,14 @@ public class AuthService {
                 .build();
     }
 
-    public Response login(UserCredentials userCredentials) {
+    public Response login(UserCredentialsDTO userCredentialsDTO) {
         // error response created before since used in both checks
         Response error = new Response(
                 HttpStatus.UNAUTHORIZED,
                 ContentType.PLAIN_TEXT,
                 "Login failed"
         );
-        User user = userCredentials.toUser().hashPassword();
+        User user = userCredentialsDTO.toUser().hashPassword();
         User savedUser = userMapper.fromEntity(userRepository.findByUsername(user.getUsername()));
         // checks if user exists
         if (savedUser == null) {
@@ -81,16 +81,16 @@ public class AuthService {
         );
     }
 
-    public Response register(UserCredentials userCredentials) {
+    public Response register(UserCredentialsDTO userCredentialsDTO) {
         Response error = new Response(
                 HttpStatus.CONFLICT,
                 ContentType.PLAIN_TEXT,
                 "User already exists"
         );
-        if (userRepository.findByUsername(userCredentials.getUsername()) != null) {
+        if (userRepository.findByUsername(userCredentialsDTO.getUsername()) != null) {
             return error;
         }
-        User user = userCredentials.toUser().hashPassword();
+        User user = userCredentialsDTO.toUser().hashPassword();
         if (userRepository.create(userMapper.toEntity(user)) == -1) {
             return error;
         }

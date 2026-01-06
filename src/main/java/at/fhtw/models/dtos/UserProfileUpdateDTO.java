@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserProfileUpdate {
+public class UserProfileUpdateDTO {
     private String email;
     private String favoriteGenre;
 }

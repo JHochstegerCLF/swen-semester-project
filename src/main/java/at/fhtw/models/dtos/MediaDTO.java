@@ -1,7 +1,5 @@
 package at.fhtw.models.dtos;
 
-import at.fhtw.models.enums.Genre;
-import at.fhtw.models.enums.MediaType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,4 +20,5 @@ public class MediaDTO {
     private int ageRestriction;
     @JsonProperty("creator")
     private int creatorId;
+    private double rating;
 }

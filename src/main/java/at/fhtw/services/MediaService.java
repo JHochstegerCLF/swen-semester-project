@@ -3,11 +3,8 @@ package at.fhtw.services;
 import at.fhtw.converter.JsonConverter;
 import at.fhtw.mapper.MediaMapper;
 import at.fhtw.models.Media;
-import at.fhtw.models.Rating;
 import at.fhtw.models.dtos.MediaDTO;
-import at.fhtw.models.entities.MediaEntity;
 import at.fhtw.persistence.MediaRepository;
-import at.fhtw.persistence.RatingRepository;
 import at.fhtw.presentation.http.ContentType;
 import at.fhtw.presentation.http.HttpStatus;
 import at.fhtw.presentation.models.Response;
@@ -23,6 +20,7 @@ import java.util.stream.Stream;
 public class MediaService {
     private final MediaRepository mediaRepository;
     private final MediaMapper mediaMapper;
+
 
     public Response addMedia(MediaDTO media) {
         if (mediaRepository.create(mediaMapper.toEntity(mediaMapper.fromDTO(media))) != -1) {
@@ -57,15 +55,15 @@ public class MediaService {
         );
     }
 
-    public Response updateMedia(int id, MediaDTO media) {
-        if (mediaRepository.findById(id) == null) {
+    public Response updateMedia(MediaDTO media) {
+        if (mediaRepository.findById(media.getId()) == null) {
             return new Response(
                     HttpStatus.NOT_FOUND,
                     ContentType.PLAIN_TEXT,
                     "Media not found"
             );
         }
-        if (mediaRepository.update(id, mediaMapper.toEntity(mediaMapper.fromDTO(media))) != null) {
+        if (mediaRepository.update(media.getId(), mediaMapper.toEntity(mediaMapper.fromDTO(media))) != null) {
             return new Response(
                     HttpStatus.OK,
                     ContentType.PLAIN_TEXT,
@@ -89,7 +87,7 @@ public class MediaService {
         }
         if (mediaRepository.delete(id)) {
             return new Response(
-                    HttpStatus.OK,
+                    HttpStatus.NO_CONTENT,
                     ContentType.PLAIN_TEXT,
                     "Media deleted"
             );
@@ -132,11 +130,11 @@ public class MediaService {
                     filteredMedias.sort(Comparator.comparingInt(Media::getReleaseYear));
                     break;
                 case "score":
-                    filteredMedias.sort(Comparator.comparingInt(Media::getRating));
+                    filteredMedias.sort(Comparator.comparingDouble(Media::getRating));
                     break;
             }
         }
-        List<MediaDTO> mediaDTOS= filteredMedias.stream().map(mediaMapper::toDTO).toList();
+        List<MediaDTO> mediaDTOS = filteredMedias.stream().map(mediaMapper::toDTO).toList();
         JsonConverter<List> jsonConverter = new JsonConverter<>(List.class);
         return new Response(
                 HttpStatus.OK,

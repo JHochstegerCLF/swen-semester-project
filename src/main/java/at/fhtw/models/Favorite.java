@@ -4,17 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Rating {
+public class Favorite {
     private int id;
-    private User creator;
+    private User user;
     private Media media;
-    private int rating;
-    private String comment;
-    private LocalDateTime timestamp;
-    private boolean confirmed;
 }
